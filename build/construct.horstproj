@@ -1,0 +1,12 @@
+out: construct
+gxx: clang
+gxxflags:
+cxxflags: -W -Wall -Wextra
+source: ../src/construct.c
+includes: -I../libs/include
+lib_path: -L../libs/lib
+libraries:
+debugger: none
+dependencies:
+d_types:
+defines: -DERROR_CHECKING
