@@ -1,16 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
 #include <string.h>
-
-#ifndef uint
-#define uint uint32_t
-#endif
-
-#ifndef byte
-#define byte uint8_t
-#endif
+#include <inttypes.h>
+typedef uint32_t uint;
+typedef uint8_t byte;
 
 enum type
 {
@@ -24,7 +17,8 @@ enum ERRORS
     ERROR_INVALID_DATA,
     ERROR_BAD_BUFFER,
     ERROR_INVALID_TYPE,
-    ERROR_OUT_OF_BOUNDS_INDEX
+    ERROR_OUT_OF_BOUNDS_INDEX,
+    ERROR_OUT_OF_BOUNDS_ELEMENT
 };
 
 struct buffer
@@ -39,14 +33,13 @@ typedef struct buffer* buffer;
 #define cast_to(type) *(type*)
 
 buffer current_buffer = NULL;
-void* current_data = NULL;
 
 enum type* current_types = NULL;
 uint current_num_types = 0;
 
 uint sizes[6] = {sizeof(uint),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
-void test_error(bool expression, uint error, const char* function)
+void test_error(int expression, uint error, const char* function)
 {
     if (!expression)
     {
@@ -70,6 +63,10 @@ void test_error(bool expression, uint error, const char* function)
                 break;
             case ERROR_OUT_OF_BOUNDS_INDEX:
                 puts("ERROR_OUT_OF_BOUNDS_INDEX");
+                break;
+            case ERROR_OUT_OF_BOUNDS_ELEMENT:
+                puts("ERROR_OUT_OF_BOUNDS_ELEMENT");
+                break;
             default:
                 break;
         }
@@ -79,11 +76,11 @@ void test_error(bool expression, uint error, const char* function)
 
 #define test_error(expression,error)     test_error(expression,error,__FUNCTION__);
 
-uint util_get_size(buffer buffer)
+uint util_get_size(buffer target)
 {
     uint i, size = 0;
-    for (i = 0; i < buffer->num_types; i++)
-        size += sizes[buffer->types[i]];
+    for (i = 0; i < target->num_types; i++)
+        size += sizes[target->types[i]];
     return size;
 }
 
@@ -113,44 +110,44 @@ void push_type(enum type t)
 }
 
 
-void bind_buffer_at(buffer buffer, uint index)
+void bind_buffer_at(buffer target, uint index)
 {
 #ifdef ERROR_CHECKING
-	test_error(buffer != NULL,ERROR_BAD_BUFFER);
+	test_error(target != NULL,ERROR_BAD_BUFFER);
 #endif
-	current_buffer = buffer;
+	current_buffer = target;
     current_buffer->iterator = index;
 }
 
 buffer init_buffer(uint num_elements)
 {
-    buffer buffer;
-    buffer = malloc(sizeof(struct buffer));
-    buffer->num_types = current_num_types;
+    buffer target;
+    target = malloc(sizeof(struct buffer));
+    target->num_types = current_num_types;
 
-    buffer->iterator = -1;
+    target->iterator = -1;
 
     #ifdef ERROR_CHECKING
     test_error(current_types != NULL,ERROR_NO_PUSHED_TYPES);
     #endif
 
-    buffer->types = current_types;
+    target->types = current_types;
 
     
-    uint size = util_get_size(buffer);
+    uint size = util_get_size(target);
 
-    buffer->data_buffer = malloc(num_elements * size);
-    buffer->num_elements = num_elements;
+    target->data_buffer = malloc(num_elements * size);
+    target->num_elements = num_elements;
 
     current_types = NULL;
-    return buffer;
+    return target;
 }
 
-void deinit_buffer(buffer buffer)
+void deinit_buffer(buffer target)
 {
-    free(buffer->data_buffer);
-    free(buffer->types);
-    free(buffer);
+    free(target->data_buffer);
+    free(target->types);
+    free(target);
 }
 
 void* get_data_buffer()
@@ -158,17 +155,17 @@ void* get_data_buffer()
     return current_buffer->data_buffer;
 }
 
-uint iterate_over(buffer buffer)
+uint iterate_over(buffer target)
 {   
-    if (buffer->iterator == buffer->num_elements - 1)
+    if (target->iterator == target->num_elements - 1)
     {
-        buffer->iterator = -1;
+        target->iterator = -1;
         return 0;
     }
     else
     {
-        buffer->iterator++;
-		bind_buffer_at(buffer,buffer->iterator);
+        target->iterator++;
+		bind_buffer_at(target,target->iterator);
         return 1;
     }
 }
@@ -182,16 +179,10 @@ void swap_at(uint idx1, uint idx2)
     util_swap(current_buffer->data_buffer + size * idx1,current_buffer->data_buffer + size * idx2,size);
 }
 
-void insert_at(uint index, void* data)
+void replace_at(uint index, buffer data)
 {
-    uint i,size = util_get_size(current_buffer);
-    current_buffer->num_elements++;
-    current_buffer->data_buffer = realloc(current_buffer->data_buffer,current_buffer->num_elements * size);
-
-    for (i = current_buffer->num_elements - 2; i > index; i--)
-        util_swap(current_buffer->data_buffer + size * (i + 1), current_buffer->data_buffer + size * i, size);
-
-    util_copy(data,current_buffer->data_buffer + size * index,size);
+    uint size = util_get_size(current_buffer);
+    util_copy(data->data_buffer,current_buffer->data_buffer + size * index,size);
 }
 
 void remove_at(uint index)
@@ -366,199 +357,266 @@ void set_fieldv(uint field, void* data)
 }
 
 
-void* get_buffer_data_buffer(buffer buffer)
+void* get_buffer_data_buffer(buffer target)
 {
-    return buffer->data_buffer;
+    return target->data_buffer;
 }
 
-void swap_buffer_at(buffer buffer, uint idx1, uint idx2)
+void swap_buffer_at(buffer target, uint idx1, uint idx2)
 {
-    test_error(idx1 < buffer->num_elements && idx2 < buffer->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
+    test_error(idx1 < target->num_elements && idx2 < target->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
 
-    uint size = util_get_size(buffer);
+    uint size = util_get_size(target);
 
-    util_swap(buffer->data_buffer + size * idx1,buffer->data_buffer + size * idx2,size);
+    util_swap(target->data_buffer + size * idx1,target->data_buffer + size * idx2,size);
 }
 
-void insert_buffer_at(buffer buffer, uint index, void* data)
+void replace_buffer_at(buffer target, uint index, buffer element)
 {
-    uint i,size = util_get_size(buffer);
-    buffer->num_elements++;
-    buffer->data_buffer = realloc(buffer->data_buffer,buffer->num_elements * size);
-
-    for (i = buffer->num_elements - 2; i > index; i--)
-        util_swap(buffer->data_buffer + size * (i + 1), buffer->data_buffer + size * i, size);
-
-    util_copy(data,buffer->data_buffer + size * index,size);
+    uint size = util_get_size(target);
+    util_copy(element->data_buffer,target->data_buffer + size * index,size);
 }
 
-void remove_buffer_at(buffer buffer,uint index)
+void remove_buffer_at(buffer target,uint index)
 {
-    uint i,size = util_get_size(buffer);
-    buffer->num_elements--;
-    for (i = index; i < buffer->num_elements; i++)
-        util_copy(buffer->data_buffer + size * (i + 1),buffer->data_buffer + size * i, size);
-    buffer->data_buffer = realloc(buffer->data_buffer,buffer->num_elements * size);
+    uint i,size = util_get_size(target);
+    target->num_elements--;
+    for (i = index; i < target->num_elements; i++)
+        util_copy(target->data_buffer + size * (i + 1),target->data_buffer + size * i, size);
+    target->data_buffer = realloc(target->data_buffer,target->num_elements * size);
 }
 
-void resize_buffer(buffer buffer, uint num_elements)
+void resize_buffer(buffer target, uint num_elements)
 {
-    uint size = util_get_size(buffer);
-    buffer->data_buffer = realloc(buffer->data_buffer,num_elements * size);
+    uint size = util_get_size(target);
+    target->data_buffer = realloc(target->data_buffer,num_elements * size);
 }
 
-uint get_buffer_element_size(buffer buffer)
+uint get_buffer_element_size(buffer target)
 {
-    uint size = util_get_size(buffer);
+    uint size = util_get_size(target);
     return size;
 }
 
-void set_buffer_iterator(buffer buffer,uint iterator)
+void set_buffer_iterator(buffer target,uint iterator)
 {
-    buffer->iterator = iterator - 1;
+    target->iterator = iterator - 1;
 }
 
-uint get_buffer_iterator(buffer buffer)
+uint get_buffer_iterator(buffer target)
 {
-    return buffer->iterator;
+    return target->iterator;
 }
 
-uint get_buffer_length(buffer buffer)
+uint get_buffer_length(buffer target)
 {
-    return buffer->num_elements;
+    return target->num_elements;
 }
 
-void* get_buffer_field(buffer buffer, uint element, uint field)
+void* get_buffer_field(buffer target, uint element, uint field)
 {
-    uint i,off = 0,size = util_get_size(buffer);
+    uint i,off = 0,size = util_get_size(target);
     for (i = 0; i < field; i++)
-        off += sizes[buffer->types[i]];
+        off += sizes[target->types[i]];
 
-    return buffer->data_buffer + off + size * element;
+    return target->data_buffer + off + size * element;
 }
 
 
-uint get_buffer_fieldui(buffer buffer, uint element, uint field)
+uint get_buffer_fieldui(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(UINT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(UINT == target->types[field],ERROR_INVALID_TYPE);
     #endif
     
-    return cast_to(uint)get_buffer_field(buffer,element,field);
+    return cast_to(uint)get_buffer_field(target,element,field);
 }
-int get_buffer_fieldi(buffer buffer, uint element, uint field)
+int get_buffer_fieldi(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(INT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(INT == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    return cast_to(int)get_buffer_field(buffer,element,field);
+    return cast_to(int)get_buffer_field(target,element,field);
 }
-float get_buffer_fieldf(buffer buffer, uint element, uint field)
+float get_buffer_fieldf(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(FLOAT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(FLOAT == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    return cast_to(float)get_buffer_field(buffer,element,field);
+    return cast_to(float)get_buffer_field(target,element,field);
 }
-char get_buffer_fieldc(buffer buffer, uint element, uint field)
+char get_buffer_fieldc(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(CHAR == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(CHAR == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    return cast_to(char)get_buffer_field(buffer,element,field);
+    return cast_to(char)get_buffer_field(target,element,field);
 }
-unsigned char get_buffer_fielduc(buffer buffer, uint element, uint field)
+unsigned char get_buffer_fielduc(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(UCHAR == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(UCHAR == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    return cast_to(unsigned char)get_buffer_field(buffer,element,field);
+    return cast_to(unsigned char)get_buffer_field(target,element,field);
 }
 
-void* get_buffer_fieldv(buffer buffer, uint element, uint field)
+void* get_buffer_fieldv(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(VOID == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(VOID == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    return cast_to(void*)get_buffer_field(buffer,element,field);
+    return cast_to(void*)get_buffer_field(target,element,field);
 }
 
-void set_buffer_field(buffer buffer, uint element, uint field, void* data)
+void set_buffer_field(buffer target, uint element, uint field, void* data)
 {
     #ifdef ERROR_CHECKING
+    test_error(element < target->num_elements,ERROR_OUT_OF_BOUNDS_ELEMENT);
     test_error(data != NULL,ERROR_INVALID_DATA);
     #endif
 
-    memcpy(get_buffer_field(buffer,element,field),data,sizes[buffer->types[field]]);
+    memcpy(get_buffer_field(target,element,field),data,sizes[target->types[field]]);
 }
 
-void set_buffer_fieldui(buffer buffer, uint element, uint field, uint data)
+void set_buffer_fieldui(buffer target, uint element, uint field, uint data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(UINT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(UINT == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldi(buffer buffer, uint element, uint field, int data)
+void set_buffer_fieldi(buffer target, uint element, uint field, int data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(INT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(INT == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldf(buffer buffer, uint element, uint field, float data)
+void set_buffer_fieldf(buffer target, uint element, uint field, float data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(FLOAT == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(FLOAT == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldc(buffer buffer, uint element, uint field, char data)
+void set_buffer_fieldc(buffer target, uint element, uint field, char data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(CHAR == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(CHAR == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fielduc(buffer buffer, uint element, uint field, unsigned char data)
+void set_buffer_fielduc(buffer target, uint element, uint field, unsigned char data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(UCHAR == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(UCHAR == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldv(buffer buffer, uint element, uint field, void* data)
+void set_buffer_fieldv(buffer target, uint element, uint field, void* data)
 {
     #ifdef ERROR_CHECKING
-    test_error(field < buffer->num_types,ERROR_INVALID_FIELD);
-    test_error(VOID == buffer->types[field],ERROR_INVALID_TYPE);
+    test_error(field < target->num_types,ERROR_INVALID_FIELD);
+    test_error(VOID == target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(buffer,element, field,&data);
+    set_buffer_field(target,element, field,&data);
 }
+
+void repush_buffer_types(buffer target)
+{
+    uint i;
+    for (i = 0; i < target->num_types; i++)
+        push_type(target->types[i]);
+}
+void repush_types()
+{
+    uint i;
+    for (i = 0; i < current_buffer->num_types; i++)
+        push_type(current_buffer->types[i]);
+}
+
+buffer create_single_buffer_element(buffer target)
+{
+    buffer element;
+    element = malloc(sizeof(struct buffer));
+    element->num_types = target->num_types;
+    element->iterator = -1;
+    element->types = malloc(sizeof(enum type) * target->num_types);
+    memcpy(element->types,target->types,sizeof(enum type) * target->num_types);
+    uint size = util_get_size(target);
+    element->data_buffer = malloc(size);
+    element->num_elements = 1;
+
+    return element;
+}
+
+buffer create_single_element()
+{
+    buffer element;
+    element = malloc(sizeof(struct buffer));
+    element->num_types = current_buffer->num_types;
+    element->iterator = -1;
+    element->types = malloc(sizeof(enum type) * current_buffer->num_types);
+    memcpy(element->types,current_buffer->types,sizeof(enum type) * current_buffer->num_types);
+    uint size = util_get_size(current_buffer);
+    element->data_buffer = malloc(size);
+    element->num_elements = 1;
+
+    return element;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
