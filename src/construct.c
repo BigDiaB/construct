@@ -197,6 +197,7 @@ void remove_at(uint index)
 void resize(uint num_elements)
 {
     uint size = util_get_size(current_buffer);
+    current_buffer->num_elements = num_elements;
     current_buffer->data_buffer = realloc(current_buffer->data_buffer,num_elements * size);
 }
 
@@ -389,6 +390,7 @@ void remove_buffer_at(buffer target,uint index)
 void resize_buffer(buffer target, uint num_elements)
 {
     uint size = util_get_size(target);
+    target->num_elements = num_elements;
     target->data_buffer = realloc(target->data_buffer,num_elements * size);
 }
 

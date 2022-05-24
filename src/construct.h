@@ -31,7 +31,7 @@ void push_type(enum type type);
 void repush_buffer_types(buffer target);
 /* Pushes the types of the currently bound buffer for use in another buffer */
 void repush_types();
-/* Iterates over all items of a buffer starting at index zero */
+/* Iterates over all items of a buffer starting at index zero if iterator is set to -1 (it is by default) */
 uint iterate_over(buffer target);
 
 /* Returns an initialised buffer with the currently pushed types and the specified length (and clears the stack for the types) */
