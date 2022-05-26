@@ -18,12 +18,11 @@ typedef uint32_t uint;
 typedef uint8_t byte;
 
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
-(Because I don't trust myself having access to the struct) */
+(Because I don't trust myself having access to the struct in my applications) */
 typedef void* buffer;
 
-/* Enum with the supported types (and #define to add "BUFFER" as a type for code clarity) */
-#define BUFFER VOID
-enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID /* ("VOID" actually means void pointer) */};
+/* Enum with the supported types */
+enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID /* ("VOID" actually means void pointer and can also be used for nested buffers) */};
 
 /* Pushes a type from the type-enum onto an internal stack */
 void push_type(enum type type);
