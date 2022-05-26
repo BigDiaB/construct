@@ -21,8 +21,8 @@ typedef uint8_t byte;
 (Because I don't trust myself having access to the struct in my applications) */
 typedef void* buffer;
 
-/* Enum with the supported types */
-enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID /* ("VOID" actually means void pointer and can also be used for nested buffers) */};
+/* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
+enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 
 /* Pushes a type from the type-enum onto an internal stack */
 void push_type(enum type type);
@@ -40,6 +40,37 @@ void deinit_buffer(buffer target);
 /* Binds the specified buffer at the specified index */
 void bind_buffer_at(buffer target, uint index);
 
+/* Returns a preinitialised copy of the specified buffer */
+buffer copy_buffer(buffer src);
+/* Copys the contents of the currenty bound buffer into the specified buffer */
+void copy_to_buffer(buffer dest);
+/* Copys the contents of the specified buffer into the currenty bound buffer */
+void copy_from_buffer(buffer src);
+/* Copys the contents of the specified buffer into another specified buffer */
+void copy_buffer_to_buffer(buffer src,buffer dest);
+
+/* Swaps the elements at the given indices in the currently bound buffer */
+void swap_at(uint idx1, uint idx2);
+/* Swaps the elements at the given indices in the specified buffer */
+void swap_buffer_at(buffer target,uint idx1, uint idx2);
+/* Swaps the elements of two specified buffers at the given indecies */
+void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest);
+/* Replaces the specified buffer at the given index, with the element of another specified buffer at another given index */
+void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest);
+
+/* Replaces the currently bound buffer at the given index, with the given element */
+void replace_at(uint index, buffer element);
+/* Removes an element from the currently bound buffer at the given index */
+void remove_at(uint index);
+/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+void resize(uint num_elements);
+
+/* Replaces the specified buffer at the given index, with the given element */
+void replace_buffer_at(buffer target, uint index, buffer element);
+/* Removes an element from the specified buffer at the given index */
+void remove_buffer_at(buffer target, uint index);
+/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+void resize_buffer(buffer target, uint num_elements);
 
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
 buffer create_single_element();
@@ -53,14 +84,8 @@ void set_iterator(uint iterator);
 uint get_length();
 /* Returns the number of bytes each element in the currently bound buffer takes */
 uint get_element_size();
-/* Swaps the elements at the given indices in the currently bound buffer */
-void swap_at(uint idx1, uint idx2);
-/* Replaces the currently bound buffer at the given index, with the given element */
-void replace_at(uint index, buffer element);
-/* Removes an element from the currently bound buffer at the given index */
-void remove_at(uint index);
-/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
-void resize(uint num_elements);
+/* Returns the offset in bytes of the element at the given index in the currently bound buffer */
+uint get_element_data_offset(uint index);
 
 /* Returns a buffer with a single element laid out according to the specified buffer */
 buffer create_single_buffer_element(buffer target);
@@ -74,14 +99,8 @@ void set_buffer_iterator(buffer target, uint iterator);
 uint get_buffer_length(buffer target);
 /* Returns the number of bytes each element in the specified buffer takes */
 uint get_buffer_element_size(buffer target);
-/* Swaps the elements at the given indices in the specified buffer */
-void swap_buffer_at(buffer target,uint idx1, uint idx2);
-/* Replaces the specified buffer at the given index, with the given element */
-void replace_buffer_at(buffer target, uint index, buffer element);
-/* Removes an element from the specified buffer at the given index */
-void remove_buffer_at(buffer target, uint index);
-/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
-void resize_buffer(buffer target, uint num_elements);
+/* Returns the offset in bytes of the element at the given index in the specified buffer */
+uint get_buffer_element_data_offset(buffer target, uint index);
 
 /* Set-functions for the different supported types for bound buffer elements */
 void set_fieldui(uint field, 	uint 			data);
@@ -112,7 +131,6 @@ float 			get_buffer_fieldf(buffer target, uint element, uint field);
 char 			get_buffer_fieldc(buffer target, uint element, uint field);
 unsigned char 	get_buffer_fielduc(buffer target, uint element, uint field);
 void* 			get_buffer_fieldv(buffer target, uint element, uint field);
-
 
 #ifdef __cplusplus
 }

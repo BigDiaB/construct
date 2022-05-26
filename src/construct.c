@@ -18,7 +18,9 @@ enum ERRORS
     ERROR_BAD_BUFFER,
     ERROR_INVALID_TYPE,
     ERROR_OUT_OF_BOUNDS_INDEX,
-    ERROR_OUT_OF_BOUNDS_ELEMENT
+    ERROR_OUT_OF_BOUNDS_ELEMENT,
+    ERROR_UNEQUAL_ELEMENT_SIZE,
+    ERROR_SMALL_DEST_BUFFER
 };
 
 struct buffer
@@ -36,7 +38,6 @@ buffer current_buffer = NULL;
 
 enum type* current_types = NULL;
 uint current_num_types = 0;
-
 uint sizes[6] = {sizeof(uint),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
 void test_error(int expression, uint error, const char* function)
@@ -66,6 +67,12 @@ void test_error(int expression, uint error, const char* function)
                 break;
             case ERROR_OUT_OF_BOUNDS_ELEMENT:
                 puts("ERROR_OUT_OF_BOUNDS_ELEMENT");
+                break;
+            case ERROR_UNEQUAL_ELEMENT_SIZE:
+                puts("ERROR_UNEQUAL_ELEMENT_SIZE");
+                break;
+            case ERROR_SMALL_DEST_BUFFER:
+                puts("ERROR_SMALL_DEST_BUFFER");
                 break;
             default:
                 break;
@@ -172,8 +179,9 @@ uint iterate_over(buffer target)
 
 void swap_at(uint idx1, uint idx2)
 {
+    #ifdef ERROR_CHECKING
     test_error(idx1 < current_buffer->num_elements && idx2 < current_buffer->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
-
+    #endif
     uint size = util_get_size(current_buffer);
 
     util_swap(current_buffer->data_buffer + size * idx1,current_buffer->data_buffer + size * idx2,size);
@@ -357,6 +365,15 @@ void set_fieldv(uint field, void* data)
     set_field(field,&data);
 }
 
+uint get_element_data_offset(uint index)
+{
+    return util_get_size(current_buffer) * index;
+}
+
+uint get_buffer_element_data_offset(buffer target, uint index)
+{
+    return util_get_size(target) * index;
+}
 
 void* get_buffer_data_buffer(buffer target)
 {
@@ -365,11 +382,36 @@ void* get_buffer_data_buffer(buffer target)
 
 void swap_buffer_at(buffer target, uint idx1, uint idx2)
 {
+    #ifdef ERROR_CHECKING
     test_error(idx1 < target->num_elements && idx2 < target->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
-
+    #endif
     uint size = util_get_size(target);
 
-    util_swap(target->data_buffer + size * idx1,target->data_buffer + size * idx2,size);
+    util_swap(target->data_buffer + get_buffer_element_data_offset(target,idx1),target->data_buffer + get_buffer_element_data_offset(target,idx2),size);
+}
+
+void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
+{
+    #ifdef ERROR_CHECKING
+    test_error(idxsrc < src->num_elements && idxdest < dest->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
+    test_error(util_get_size(dest) == util_get_size(src),ERROR_UNEQUAL_ELEMENT_SIZE);
+    test_error(dest->num_elements >= src->num_elements, ERROR_SMALL_DEST_BUFFER);
+    #endif
+
+    uint size = util_get_size(src);
+    util_swap(src->data_buffer + size * idxsrc,dest->data_buffer + size * idxdest,size);
+}
+
+void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
+{
+    #ifdef ERROR_CHECKING
+    test_error(idxsrc < src->num_elements && idxdest < dest->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
+    test_error(util_get_size(dest) == util_get_size(src),ERROR_UNEQUAL_ELEMENT_SIZE);
+    test_error(dest->num_elements >= src->num_elements, ERROR_SMALL_DEST_BUFFER);
+    #endif
+
+    uint size = util_get_size(src);
+    util_copy(src->data_buffer + size * idxsrc,dest->data_buffer + size * idxdest,size);
 }
 
 void replace_buffer_at(buffer target, uint index, buffer element)
@@ -594,11 +636,52 @@ buffer create_single_element()
     return element;
 }
 
+void copy_to_buffer(buffer dest)
+{
+    #ifdef ERROR_CHECKING
+    test_error(get_buffer_element_size(dest) == get_buffer_element_size(current_buffer),ERROR_UNEQUAL_ELEMENT_SIZE);
+    test_error(dest->num_elements >= current_buffer->num_elements, ERROR_SMALL_DEST_BUFFER);
+    #endif
+    util_copy(current_buffer->data_buffer,dest->data_buffer,dest->num_elements * get_buffer_element_size(dest));
+}
 
+void copy_from_buffer(buffer src)
+{
+    #ifdef ERROR_CHECKING
+    test_error(get_buffer_element_size(current_buffer) == get_buffer_element_size(src),ERROR_UNEQUAL_ELEMENT_SIZE);
+    test_error(current_buffer->num_elements >= src->num_elements, ERROR_SMALL_DEST_BUFFER);
+    #endif
+    util_copy(src->data_buffer,current_buffer->data_buffer,current_buffer->num_elements * get_buffer_element_size(current_buffer));
+}
 
+void copy_buffer_to_buffer(buffer src,buffer dest)
+{
+    #ifdef ERROR_CHECKING
+    test_error(get_buffer_element_size(dest) == get_buffer_element_size(src),ERROR_UNEQUAL_ELEMENT_SIZE);
+    test_error(dest->num_elements >= src->num_elements, ERROR_SMALL_DEST_BUFFER);
+    #endif
+    util_copy(src->data_buffer,dest->data_buffer,dest->num_elements * get_buffer_element_size(dest));
+}
 
+buffer copy_buffer(buffer src)
+{
+    buffer copy = malloc(sizeof(struct buffer));
 
+    copy->iterator = src->iterator;
 
+    uint i, size = util_get_size(src);
+    copy->num_types = src->num_types;
+    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    for (i = 0; i < src->num_types; i++)
+        copy->types[i] = src->types[i];
+
+    copy->data_buffer = malloc(src->num_elements * size);
+    copy->num_elements = src->num_elements;
+
+    copy_buffer_to_buffer(src,copy);
+
+    return copy;
+}
 
 
 
