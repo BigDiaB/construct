@@ -166,7 +166,7 @@ uint iterate_over(buffer target)
 {   
     if (target->iterator == target->num_elements - 1)
     {
-        target->iterator = -1;
+        target->iterator = 0;
         return 0;
     }
     else
@@ -685,7 +685,47 @@ buffer copy_buffer(buffer src)
 
 
 
+void append_at(buffer src)
+{
+    uint size = util_get_size(current_buffer),old_num_element = current_buffer->num_elements;
+    resize_buffer(current_buffer,current_buffer->num_elements + src->num_elements);
+    memcpy(current_buffer->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
+}
 
+void append_to(buffer dest)
+{
+    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    resize_buffer(dest,dest->num_elements + current_buffer->num_elements);
+    memcpy(dest->data_buffer + size * old_num_element,current_buffer->data_buffer,util_get_size(current_buffer) * current_buffer->num_elements);
+}
+
+void append_buffer_at(buffer src, buffer dest)
+{
+    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    resize_buffer(dest,dest->num_elements + src->num_elements);
+    memcpy(dest->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
+}
+
+void append_element_at(buffer src, uint index)
+{
+    uint size = util_get_size(current_buffer),old_num_element = current_buffer->num_elements;
+    resize_buffer(current_buffer,current_buffer->num_elements + src->num_elements);
+    memcpy(current_buffer->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
+}
+
+void append_element_to(buffer dest, uint index)
+{
+    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    resize_buffer(dest,dest->num_elements + current_buffer->num_elements);
+    memcpy(dest->data_buffer + size * old_num_element,current_buffer->data_buffer + get_buffer_element_data_offset(current_buffer,index),util_get_size(current_buffer));
+}
+
+void append_buffer_element_at(buffer src, uint index, buffer dest)
+{
+    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    resize_buffer(dest,dest->num_elements + src->num_elements);
+    memcpy(dest->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
+}
 
 
 

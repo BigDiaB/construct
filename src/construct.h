@@ -9,10 +9,10 @@ extern "C" {
 Construct is a library for runtime data types, bound together like a struct
 
 The so called buffers are opaque to the end-user in addition to a lot of error-checks to make sure that this library is as memory safe as possible!
-(The error checks must be enabled first by defining "ERROR_CHECKING" during compilation)
+(The error checks must be enabled first by defining "ERROR_CHECKING" during compilation of the library)
 */
 	
-/* Unsigned integer-type and byte-type I use for basically everything */
+/* Unsigned integer- and byte-type I use for basically everything */
 #include <inttypes.h>
 typedef uint32_t uint;
 typedef uint8_t byte;
@@ -26,11 +26,11 @@ enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 
 /* Pushes a type from the type-enum onto an internal stack */
 void push_type(enum type type);
-/* Pushes the types of the specified buffer for use in another buffer */
+/* Pushes the types of the specified buffer for use in another buffer onto an internal stack */
 void repush_buffer_types(buffer target);
-/* Pushes the types of the currently bound buffer for use in another buffer */
+/* Pushes the types of the currently bound buffer for use in another buffer onto an internal stack */
 void repush_types();
-/* Iterates over all items of a buffer starting at index zero if iterator is set to -1 (it is by default) */
+/* Iterates over all items of a buffer starting at index of the iterator */
 uint iterate_over(buffer target);
 
 /* Returns an initialised buffer with the currently pushed types and the specified length (and clears the stack for the types) */
@@ -71,6 +71,20 @@ void replace_buffer_at(buffer target, uint index, buffer element);
 void remove_buffer_at(buffer target, uint index);
 /* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
 void resize_buffer(buffer target, uint num_elements);
+
+/* Appends the contents of the specified buffer to the currently bound buffer */
+void append_at(buffer src);
+/* Appends the contents of the currently bound buffer to the specified buffer */
+void append_to(buffer dest);
+/* Appends the contents of the specified buffer to another specified buffer buffer */
+void append_buffer_at(buffer src, buffer dest);
+
+/* Appends one element at the given index of the specified buffer to the currently bound buffer */
+void append_element_at(buffer src, uint index);
+/* Appends one element at the given index of the currently bound buffer to the specified buffer */
+void append_element_to(buffer dest, uint index);
+/* Appends one element at the given index of the specified buffer to another specified buffer buffer */
+void append_buffer_element_at(buffer src, uint index, buffer dest);
 
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
 buffer create_single_element();
