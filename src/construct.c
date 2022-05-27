@@ -35,10 +35,10 @@ typedef struct buffer* buffer;
 #define cast_to(type) *(type*)
 
 buffer current_buffer = NULL;
-
 enum type* current_types = NULL;
 uint current_num_types = 0;
-uint sizes[6] = {sizeof(uint),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
+
+const uint sizes[6] = {sizeof(uint),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
 void test_error(int expression, uint error, const char* function)
 {

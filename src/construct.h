@@ -3,7 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif /* __cplusplus */
 
 /* Construct
 Construct is a library for runtime data types, bound together like a struct
@@ -148,6 +148,6 @@ void* 			get_buffer_fieldv(buffer target, uint element, uint field);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 
 #endif /* CONSTRUCT_H */
