@@ -24,11 +24,15 @@ typedef void* buffer;
 /* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
 enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 
-/* Pushes a type from the type-enum onto an internal stack */
+/* Flushes the type-stack */
+void flush_types();
+/* Pops the given number of types from the type-stack */
+void pop_types(uint num_types);
+/* Pushes a type from the type-enum onto the type-stack */
 void push_type(enum type type);
-/* Pushes the types of the specified buffer for use in another buffer onto an internal stack */
+/* Pushes the types of the specified buffer for use in another buffer onto the type-stack */
 void repush_buffer_types(buffer target);
-/* Pushes the types of the currently bound buffer for use in another buffer onto an internal stack */
+/* Pushes the types of the currently bound buffer for use in another buffer onto the type-stack */
 void repush_types();
 /* Iterates over all items of a buffer starting at index of the iterator */
 uint iterate_over(buffer target);

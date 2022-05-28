@@ -20,7 +20,8 @@ enum ERRORS
     ERROR_OUT_OF_BOUNDS_INDEX,
     ERROR_OUT_OF_BOUNDS_ELEMENT,
     ERROR_UNEQUAL_ELEMENT_SIZE,
-    ERROR_SMALL_DEST_BUFFER
+    ERROR_SMALL_DEST_BUFFER,
+    ERROR_INVALID_NUM_TYPES
 };
 
 struct buffer
@@ -73,6 +74,9 @@ void test_error(int expression, uint error, const char* function)
                 break;
             case ERROR_SMALL_DEST_BUFFER:
                 puts("ERROR_SMALL_DEST_BUFFER");
+                break;
+            case ERROR_INVALID_NUM_TYPES:
+                puts("ERROR_INVALID_NUM_TYPES");
                 break;
             default:
                 break;
@@ -727,9 +731,24 @@ void append_buffer_element_at(buffer src, uint index, buffer dest)
     memcpy(dest->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
 }
 
+void flush_types()
+{
+    #ifdef ERROR_CHECKING
+    test_error(current_types != NULL,ERROR_NO_PUSHED_TYPES);
+    #endif
+    free(current_types);
+    current_types = NULL;
+    current_num_types = 0;
+}
 
-
-
+void pop_types(uint num_types)
+{
+    #ifdef ERROR_CHECKING
+    test_error(num_types >= num_types,ERROR_INVALID_NUM_TYPES);
+    #endif
+    current_num_types -= num_types;
+    current_types = realloc(current_types,current_num_types * sizeof(enum type));
+}
 
 
 
