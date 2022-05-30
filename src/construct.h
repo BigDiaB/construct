@@ -3,7 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 /* Construct
 Construct is a library for runtime data types, bound together like a struct
@@ -12,24 +12,23 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 (The error checks must be enabled first by defining "ERROR_CHECKING" during compilation of the library)
 */
 	
-/* Unsigned integer- and byte-type I use for basically everything */
+/* Unsigned integer-type I use for basically everything */
 #include <inttypes.h>
 typedef uint32_t uint;
-typedef uint8_t byte;
 
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
 (Because I don't trust myself having access to the struct in my applications) */
 typedef void* buffer;
 
 /* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
-enum type {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
+enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 
 /* Flushes the type-stack */
 void flush_types();
 /* Pops the given number of types from the type-stack */
 void pop_types(uint num_types);
 /* Pushes a type from the type-enum onto the type-stack */
-void push_type(enum type type);
+void push_type(enum construct_types type);
 /* Pushes the types of the specified buffer for use in another buffer onto the type-stack */
 void repush_buffer_types(buffer target);
 /* Pushes the types of the currently bound buffer for use in another buffer onto the type-stack */
@@ -44,6 +43,10 @@ void deinit_buffer(buffer target);
 /* Binds the specified buffer at the specified index */
 void bind_buffer_at(buffer target, uint index);
 
+/* Returns a buffer with a single element laid out according to the specified buffer */
+buffer create_single_buffer_element(buffer target);
+/* Returns a buffer with a single element laid out according to the currently bound buffer */
+buffer create_single_element();
 /* Returns a preinitialised copy of the specified buffer */
 buffer copy_buffer(buffer src);
 /* Copys the contents of the currenty bound buffer into the specified buffer */
@@ -62,19 +65,29 @@ void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest);
 /* Replaces the specified buffer at the given index, with the element of another specified buffer at another given index */
 void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest);
 
-/* Replaces the currently bound buffer at the given index, with the given element */
-void replace_at(uint index, buffer element);
-/* Removes an element from the currently bound buffer at the given index */
-void remove_at(uint index);
-/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
-void resize(uint num_elements);
+/* Returns an already malloc'ed pointer to a copy of the data buffer of the currently bound buffer and populates size with the length of the data buffer in bytes */
+void* dump_binary(uint* size);
+/* Copies bin_data into the data buffer of the currently bound buffer and resizes it if the given size doesn't match the current size of the currently bound buffer */
+void load_binary(void* bin_data, uint size);
+/* Returns an already malloc'ed pointer to a copy of the data buffer of the specified buffer and populates size with the length of the data buffer in bytes */
+void* dump_buffer_binary(buffer target, uint* size);
+/* Copies bin_data into the data buffer of the specified buffer and resizes it if the given size doesn't match the current size of the specified buffer */
+void load_buffer_binary(buffer target, void* bin_data, uint size);
 
 /* Replaces the specified buffer at the given index, with the given element */
 void replace_buffer_at(buffer target, uint index, buffer element);
-/* Removes an element from the specified buffer at the given index */
-void remove_buffer_at(buffer target, uint index);
+/* Replaces the currently bound buffer at the given index, with the given element */
+void replace_at(uint index, buffer element);
+
 /* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
 void resize_buffer(buffer target, uint num_elements);
+/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+void resize(uint num_elements);
+
+/* Removes an element from the specified buffer at the given index */
+void remove_buffer_at(buffer target, uint index);
+/* Removes an element from the currently bound buffer at the given index */
+void remove_at(uint index);
 
 /* Appends the contents of the specified buffer to the currently bound buffer */
 void append_at(buffer src);
@@ -90,8 +103,6 @@ void append_element_to(buffer dest, uint index);
 /* Appends one element at the given index of the specified buffer to another specified buffer buffer */
 void append_buffer_element_at(buffer src, uint index, buffer dest);
 
-/* Returns a buffer with a single element laid out according to the currently bound buffer */
-buffer create_single_element();
 /* Returns the raw data buffer of the currently bound buffer */
 void* get_data_buffer();
 /* Returns the iterator of the currently bound buffer */
@@ -105,8 +116,6 @@ uint get_element_size();
 /* Returns the offset in bytes of the element at the given index in the currently bound buffer */
 uint get_element_data_offset(uint index);
 
-/* Returns a buffer with a single element laid out according to the specified buffer */
-buffer create_single_buffer_element(buffer target);
 /* Returns the raw data buffer of the specified buffer */
 void* get_buffer_data_buffer(buffer target);
 /* Returns the iterator of the specified buffer */
@@ -152,6 +161,6 @@ void* 			get_buffer_fieldv(buffer target, uint element, uint field);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CONSTRUCT_H */
