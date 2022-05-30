@@ -129,14 +129,14 @@ uint get_buffer_element_size(buffer target);
 /* Returns the offset in bytes of the element at the given index in the specified buffer */
 uint get_buffer_element_data_offset(buffer target, uint index);
 
-/* Set-functions for the different supported types for bound buffer elements */
+/* Assigns the given field of the currently bound buffer to the specified data */
 void set_fieldui(uint field, 	uint 			data);
 void set_fieldi(uint field,  	int 			data);
 void set_fieldf(uint field,  	float 			data);
 void set_fieldc(uint field,  	char 			data);
 void set_fielduc(uint field, 	unsigned char 	data);
 void set_fieldv(uint field,		void* 			data);
-/* Get-functions for the different supported types for bound buffer elements */
+/* Returns the given field of the currently bound buffer */
 uint			get_fieldui(uint field);
 int 			get_fieldi(uint field);
 float 			get_fieldf(uint field);
@@ -144,14 +144,14 @@ char 			get_fieldc(uint field);
 unsigned char 	get_fielduc(uint field);
 void* 			get_fieldv(uint field);
 
-/* Set-functions for the different supported types for elements in specified buffers */
+/* Assigns the given field of the specified buffer to the specified data */
 void set_buffer_fieldui(buffer target, uint element, uint field,	uint 			data);
 void set_buffer_fieldi(buffer target, uint element, uint field,		int 			data);
 void set_buffer_fieldf(buffer target, uint element, uint field,		float 			data);
 void set_buffer_fieldc(buffer target, uint element, uint field,		char 			data);
 void set_buffer_fielduc(buffer target, uint element, uint field,	unsigned char 	data);
 void set_buffer_fieldv(buffer target, uint element, uint field,		void* 			data);
-/* Get-functions for the different supported types for elements in specified buffers */
+/* Returns the given field of the specified buffer */
 uint			get_buffer_fieldui(buffer target, uint element, uint field);
 int 			get_buffer_fieldi(buffer target, uint element, uint field);
 float 			get_buffer_fieldf(buffer target, uint element, uint field);
