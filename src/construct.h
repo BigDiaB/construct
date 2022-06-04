@@ -11,6 +11,10 @@ Construct is a library for runtime data types, bound together like a struct
 The so called buffers are opaque to the end-user in addition to a lot of error-checks to make sure that this library is as memory safe as possible!
 (The error checks must be enabled first by defining "ERROR_CHECKING" during compilation of the library)
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 	
 /* Unsigned integer-type I use for basically everything */
 #include <inttypes.h>
@@ -22,6 +26,7 @@ typedef void* buffer;
 
 /* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
 enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
+
 
 /* Flushes the type-stack */
 void flush_types();
@@ -103,6 +108,10 @@ void append_element_to(buffer dest, uint index);
 /* Appends one element at the given index of the specified buffer to another specified buffer buffer */
 void append_buffer_element_at(buffer src, uint index, buffer dest);
 
+/* sets every single byte in the data-buffer of the currently bound buffer to zero */
+void zero_out();
+/* Returns the size of the currently bound buffer's data-buffer in bytes */
+uint get_size(buffer target);
 /* Returns the raw data buffer of the currently bound buffer */
 void* get_data_buffer();
 /* Returns the iterator of the currently bound buffer */
@@ -116,6 +125,10 @@ uint get_element_size();
 /* Returns the offset in bytes of the element at the given index in the currently bound buffer */
 uint get_element_data_offset(uint index);
 
+/* sets every single byte in the data-buffer of the specified buffer to zero */
+void zero_buffer_out(buffer target);
+/* Returns the size of the specified buffer's data-buffer in bytes */
+uint get_buffer_size(buffer target);
 /* Returns the raw data buffer of the specified buffer */
 void* get_buffer_data_buffer(buffer target);
 /* Returns the iterator of the specified buffer */

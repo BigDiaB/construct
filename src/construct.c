@@ -118,7 +118,6 @@ void push_type(enum TYPE t)
     CURRENT_NUM_TYPES++;
 }
 
-
 void bind_buffer_at(BUFFER target, uint index)
 {
 #ifdef ERROR_CHECKING
@@ -126,6 +125,38 @@ void bind_buffer_at(BUFFER target, uint index)
 #endif
 	CURRENT_BUFFER = target;
     CURRENT_BUFFER->iterator = index;
+}
+
+uint get_buffer_size(BUFFER target)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    #endif
+    return util_get_size(target) * target->num_elements;
+}
+
+uint get_size()
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+    return util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements;
+}
+
+void zero_buffer_out(BUFFER target)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    #endif
+    memset(target->data_buffer,0,get_buffer_size(target));
+}
+
+void zero_out()
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+    memset(CURRENT_BUFFER->data_buffer,0,get_buffer_size(CURRENT_BUFFER));
 }
 
 BUFFER init_buffer(uint num_elements)
@@ -178,14 +209,14 @@ uint iterate_over(BUFFER target)
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    if (target->iterator >= target->num_elements - 1 || target->num_elements == 0)
+    target->iterator++;
+    if (target->iterator == target->num_elements || target->num_elements == 0)
     {
-        target->iterator = 0;
+        target->iterator = -1;
         return 0;
     }
     else
     {
-        target->iterator++;
 		bind_buffer_at(target,target->iterator);
         return 1;
     }
