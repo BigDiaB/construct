@@ -4,6 +4,8 @@
 #include <inttypes.h>
 typedef uint32_t uint;
 
+#include <DBG/debug.h>
+
 enum TYPE
 {
     UINT,INT,FLOAT,CHAR,UCHAR,VOID

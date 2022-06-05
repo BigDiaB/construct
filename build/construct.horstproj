@@ -5,8 +5,8 @@ cxxflags: -W -Wall -Wextra
 source: ../src/construct.c
 includes: -I../libs/include
 lib_path: -L../libs/lib
-libraries:
+libraries: -lDBG
 debugger: none
-dependencies:
-d_types:
-defines: -DERROR_CHECKING
+dependencies: DBG
+d_types: static
+defines: -DERROR_CHECKING -DEBUG
