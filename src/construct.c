@@ -13,7 +13,7 @@ enum TYPE
 
 enum ERRORS
 {
-    ERROR_INVALID_FIELD = 100,
+    ERROR_INVALID_FIELD,
     ERROR_NO_PUSHED_TYPES,
     ERROR_INVALID_DATA,
     ERROR_BAD_BUFFER,
@@ -26,18 +26,32 @@ enum ERRORS
     ERROR_NO_BOUND_BUFFER
 };
 
-struct BUFFER
+const char* error_messages[11] = {
+    "ERROR_INVALID_FIELD",
+    "ERROR_NO_PUSHED_TYPES",
+    "ERROR_INVALID_DATA",
+    "ERROR_BAD_BUFFER",
+    "ERROR_INVALID_TYPE",
+    "ERROR_OUT_OF_BOUNDS_INDEX",
+    "ERROR_OUT_OF_BOUNDS_ELEMENT",
+    "ERROR_UNEQUAL_ELEMENT_SIZE",
+    "ERROR_SMALL_DEST_BUFFER",
+    "ERROR_INVALID_NUM_TYPES",
+    "ERROR_NO_BOUND_BUFFER"
+};
+
+struct buffer
 {
     uint iterator,num_types,num_elements;
     void* data_buffer;
     enum TYPE* types;
 };
 
-typedef struct BUFFER* BUFFER;
+typedef struct buffer* buffer;
 
 #define cast_to(type) *(type*)
 
-BUFFER CURRENT_BUFFER = NULL;
+buffer CURRENT_BUFFER = NULL;
 enum TYPE* CURRENT_TYPES = NULL;
 uint CURRENT_NUM_TYPES = 0;
 
@@ -47,52 +61,14 @@ void error_if(int failure, uint error, const char* function)
 {
     if (failure)
     {
-        printf("%s errored with code %u: ",function,error);
-        switch(error)
-        {
-            case ERROR_INVALID_FIELD:
-                puts("ERROR_INVALID_FIELD");
-                break;
-            case ERROR_NO_PUSHED_TYPES:
-                puts("ERROR_NO_PUSHED_TYPES");
-                break;
-            case ERROR_INVALID_DATA:
-                puts("ERROR_INVALID_DATA");
-                break;
-            case ERROR_BAD_BUFFER:
-                puts("ERROR_BAD_BUFFER");
-                break;
-            case ERROR_INVALID_TYPE:
-                puts("ERROR_INVALID_TYPE");
-                break;
-            case ERROR_OUT_OF_BOUNDS_INDEX:
-                puts("ERROR_OUT_OF_BOUNDS_INDEX");
-                break;
-            case ERROR_OUT_OF_BOUNDS_ELEMENT:
-                puts("ERROR_OUT_OF_BOUNDS_ELEMENT");
-                break;
-            case ERROR_UNEQUAL_ELEMENT_SIZE:
-                puts("ERROR_UNEQUAL_ELEMENT_SIZE");
-                break;
-            case ERROR_SMALL_DEST_BUFFER:
-                puts("ERROR_SMALL_DEST_BUFFER");
-                break;
-            case ERROR_INVALID_NUM_TYPES:
-                puts("ERROR_INVALID_NUM_TYPES");
-                break;
-            case ERROR_NO_BOUND_BUFFER:
-                puts("ERROR_NO_BOUND_BUFFER");
-                break;
-            default:
-                break;
-        }
-        exit(error);
+        printf("%s errored with code %u: %s\n",function,error,error_messages[error]);
+        exit(error + 100);
     }
 }
 
 #define error_if(failure,error)     error_if(failure,error,__FUNCTION__);
 
-uint util_get_size(BUFFER target)
+uint util_get_size(buffer target)
 {
     uint i, size = 0;
     for (i = 0; i < target->num_types; i++)
@@ -120,7 +96,7 @@ void push_type(enum TYPE t)
     CURRENT_NUM_TYPES++;
 }
 
-void bind_buffer_at(BUFFER target, uint index)
+void bind_buffer_at(buffer target, uint index)
 {
 #ifdef ERROR_CHECKING
 	error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -129,7 +105,7 @@ void bind_buffer_at(BUFFER target, uint index)
     CURRENT_BUFFER->iterator = index;
 }
 
-uint get_buffer_size(BUFFER target)
+uint get_buffer_size(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -145,7 +121,7 @@ uint get_size()
     return util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements;
 }
 
-void zero_buffer_out(BUFFER target)
+void zero_buffer_out(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -161,10 +137,10 @@ void zero_out()
     memset(CURRENT_BUFFER->data_buffer,0,get_buffer_size(CURRENT_BUFFER));
 }
 
-BUFFER init_buffer(uint num_elements)
+buffer init_buffer(uint num_elements)
 {
-    BUFFER target;
-    target = malloc(sizeof(struct BUFFER));
+    buffer target;
+    target = malloc(sizeof(struct buffer));
     target->num_types = CURRENT_NUM_TYPES;
 
     target->iterator = -1;
@@ -185,7 +161,7 @@ BUFFER init_buffer(uint num_elements)
     return target;
 }
 
-void deinit_buffer(BUFFER target)
+void deinit_buffer(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -206,7 +182,7 @@ void* get_data_buffer()
     return CURRENT_BUFFER->data_buffer;
 }
 
-uint iterate_over(BUFFER target)
+uint iterate_over(buffer target)
 {   
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -235,7 +211,7 @@ void swap_at(uint idx1, uint idx2)
     swap(CURRENT_BUFFER->data_buffer + size * idx1,CURRENT_BUFFER->data_buffer + size * idx2,size);
 }
 
-void replace_at(uint index, BUFFER data)
+void replace_at(uint index, buffer data)
 {
     #ifdef ERROR_CHECKING
     error_if(data == NULL,ERROR_INVALID_DATA);
@@ -456,7 +432,7 @@ uint get_element_data_offset(uint index)
     return util_get_size(CURRENT_BUFFER) * index;
 }
 
-uint get_buffer_element_data_offset(BUFFER target, uint index)
+uint get_buffer_element_data_offset(buffer target, uint index)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -464,7 +440,7 @@ uint get_buffer_element_data_offset(BUFFER target, uint index)
     return util_get_size(target) * index;
 }
 
-void* get_buffer_data_buffer(BUFFER target)
+void* get_buffer_data_buffer(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -472,7 +448,7 @@ void* get_buffer_data_buffer(BUFFER target)
     return target->data_buffer;
 }
 
-void swap_buffer_at(BUFFER target, uint idx1, uint idx2)
+void swap_buffer_at(buffer target, uint idx1, uint idx2)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -483,7 +459,7 @@ void swap_buffer_at(BUFFER target, uint idx1, uint idx2)
     swap(target->data_buffer + get_buffer_element_data_offset(target,idx1),target->data_buffer + get_buffer_element_data_offset(target,idx2),size);
 }
 
-void swap_buffer_at_buffer(BUFFER src, uint idxsrc, BUFFER dest, uint idxdest)
+void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -497,7 +473,7 @@ void swap_buffer_at_buffer(BUFFER src, uint idxsrc, BUFFER dest, uint idxdest)
     swap(src->data_buffer + size * idxsrc,dest->data_buffer + size * idxdest,size);
 }
 
-void replace_buffer_at_buffer(BUFFER src, uint idxsrc, BUFFER dest, uint idxdest)
+void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -511,7 +487,7 @@ void replace_buffer_at_buffer(BUFFER src, uint idxsrc, BUFFER dest, uint idxdest
     memcpy(dest->data_buffer + size * idxdest,src->data_buffer + size * idxsrc,size);
 }
 
-void replace_buffer_at(BUFFER target, uint index, BUFFER element)
+void replace_buffer_at(buffer target, uint index, buffer element)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -520,7 +496,7 @@ void replace_buffer_at(BUFFER target, uint index, BUFFER element)
     memcpy(target->data_buffer + size * index,element->data_buffer,size);
 }
 
-void remove_buffer_at(BUFFER target,uint index)
+void remove_buffer_at(buffer target,uint index)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -532,7 +508,7 @@ void remove_buffer_at(BUFFER target,uint index)
     target->data_buffer = realloc(target->data_buffer,target->num_elements * size);
 }
 
-void resize_buffer(BUFFER target, uint num_elements)
+void resize_buffer(buffer target, uint num_elements)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -542,7 +518,7 @@ void resize_buffer(BUFFER target, uint num_elements)
     target->data_buffer = realloc(target->data_buffer,num_elements * size);
 }
 
-uint get_buffer_element_size(BUFFER target)
+uint get_buffer_element_size(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -551,7 +527,7 @@ uint get_buffer_element_size(BUFFER target)
     return size;
 }
 
-void set_buffer_iterator(BUFFER target,uint iterator)
+void set_buffer_iterator(buffer target,uint iterator)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -559,7 +535,7 @@ void set_buffer_iterator(BUFFER target,uint iterator)
     target->iterator = iterator - 1;
 }
 
-uint get_buffer_iterator(BUFFER target)
+uint get_buffer_iterator(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -567,7 +543,7 @@ uint get_buffer_iterator(BUFFER target)
     return target->iterator;
 }
 
-uint get_buffer_length(BUFFER target)
+uint get_buffer_length(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -575,7 +551,7 @@ uint get_buffer_length(BUFFER target)
     return target->num_elements;
 }
 
-void* get_buffer_field(BUFFER target, uint element, uint field)
+void* get_buffer_field(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -588,7 +564,7 @@ void* get_buffer_field(BUFFER target, uint element, uint field)
 }
 
 
-uint get_buffer_fieldui(BUFFER target, uint element, uint field)
+uint get_buffer_fieldui(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -598,7 +574,7 @@ uint get_buffer_fieldui(BUFFER target, uint element, uint field)
     
     return cast_to(uint)get_buffer_field(target,element,field);
 }
-int get_buffer_fieldi(BUFFER target, uint element, uint field)
+int get_buffer_fieldi(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -608,7 +584,7 @@ int get_buffer_fieldi(BUFFER target, uint element, uint field)
 
     return cast_to(int)get_buffer_field(target,element,field);
 }
-float get_buffer_fieldf(BUFFER target, uint element, uint field)
+float get_buffer_fieldf(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -618,7 +594,7 @@ float get_buffer_fieldf(BUFFER target, uint element, uint field)
 
     return cast_to(float)get_buffer_field(target,element,field);
 }
-char get_buffer_fieldc(BUFFER target, uint element, uint field)
+char get_buffer_fieldc(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -628,7 +604,7 @@ char get_buffer_fieldc(BUFFER target, uint element, uint field)
 
     return cast_to(char)get_buffer_field(target,element,field);
 }
-unsigned char get_buffer_fielduc(BUFFER target, uint element, uint field)
+unsigned char get_buffer_fielduc(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -639,7 +615,7 @@ unsigned char get_buffer_fielduc(BUFFER target, uint element, uint field)
     return cast_to(unsigned char)get_buffer_field(target,element,field);
 }
 
-void* get_buffer_fieldv(BUFFER target, uint element, uint field)
+void* get_buffer_fieldv(buffer target, uint element, uint field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -650,7 +626,7 @@ void* get_buffer_fieldv(BUFFER target, uint element, uint field)
     return cast_to(void*)get_buffer_field(target,element,field);
 }
 
-void set_buffer_field(BUFFER target, uint element, uint field, void* data)
+void set_buffer_field(buffer target, uint element, uint field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -661,7 +637,7 @@ void set_buffer_field(BUFFER target, uint element, uint field, void* data)
     memcpy(get_buffer_field(target,element,field),data,sizes[target->types[field]]);
 }
 
-void set_buffer_fieldui(BUFFER target, uint element, uint field, uint data)
+void set_buffer_fieldui(buffer target, uint element, uint field, uint data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -672,7 +648,7 @@ void set_buffer_fieldui(BUFFER target, uint element, uint field, uint data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldi(BUFFER target, uint element, uint field, int data)
+void set_buffer_fieldi(buffer target, uint element, uint field, int data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -683,7 +659,7 @@ void set_buffer_fieldi(BUFFER target, uint element, uint field, int data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldf(BUFFER target, uint element, uint field, float data)
+void set_buffer_fieldf(buffer target, uint element, uint field, float data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -694,7 +670,7 @@ void set_buffer_fieldf(BUFFER target, uint element, uint field, float data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldc(BUFFER target, uint element, uint field, char data)
+void set_buffer_fieldc(buffer target, uint element, uint field, char data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -705,7 +681,7 @@ void set_buffer_fieldc(BUFFER target, uint element, uint field, char data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fielduc(BUFFER target, uint element, uint field, unsigned char data)
+void set_buffer_fielduc(buffer target, uint element, uint field, unsigned char data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -716,7 +692,7 @@ void set_buffer_fielduc(BUFFER target, uint element, uint field, unsigned char d
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldv(BUFFER target, uint element, uint field, void* data)
+void set_buffer_fieldv(buffer target, uint element, uint field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -727,7 +703,7 @@ void set_buffer_fieldv(BUFFER target, uint element, uint field, void* data)
     set_buffer_field(target,element, field,&data);
 }
 
-void repush_buffer_types(BUFFER target)
+void repush_buffer_types(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -746,10 +722,10 @@ void repush_types()
         push_type(CURRENT_BUFFER->types[i]);
 }
 
-BUFFER create_single_buffer_element(BUFFER target)
+buffer create_single_buffer_element(buffer target)
 {
-    BUFFER element;
-    element = malloc(sizeof(struct BUFFER));
+    buffer element;
+    element = malloc(sizeof(struct buffer));
     element->num_types = target->num_types;
     element->iterator = -1;
     element->types = malloc(sizeof(enum TYPE) * target->num_types);
@@ -761,13 +737,13 @@ BUFFER create_single_buffer_element(BUFFER target)
     return element;
 }
 
-BUFFER create_single_element()
+buffer create_single_element()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    BUFFER element;
-    element = malloc(sizeof(struct BUFFER));
+    buffer element;
+    element = malloc(sizeof(struct buffer));
     element->num_types = CURRENT_BUFFER->num_types;
     element->iterator = -1;
     element->types = malloc(sizeof(enum TYPE) * CURRENT_BUFFER->num_types);
@@ -779,7 +755,7 @@ BUFFER create_single_element()
     return element;
 }
 
-void copy_to_buffer(BUFFER dest)
+void copy_to_buffer(buffer dest)
 {
 
     #ifdef ERROR_CHECKING
@@ -790,7 +766,7 @@ void copy_to_buffer(BUFFER dest)
     memcpy(dest->data_buffer,CURRENT_BUFFER->data_buffer,dest->num_elements * get_buffer_element_size(dest));
 }
 
-void copy_from_buffer(BUFFER src)
+void copy_from_buffer(buffer src)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -800,7 +776,7 @@ void copy_from_buffer(BUFFER src)
     memcpy(CURRENT_BUFFER->data_buffer,src->data_buffer,CURRENT_BUFFER->num_elements * get_buffer_element_size(CURRENT_BUFFER));
 }
 
-void copy_buffer_to_buffer(BUFFER src,BUFFER dest)
+void copy_buffer_to_buffer(buffer src,buffer dest)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -810,9 +786,9 @@ void copy_buffer_to_buffer(BUFFER src,BUFFER dest)
     memcpy(dest->data_buffer,src->data_buffer,dest->num_elements * get_buffer_element_size(dest));
 }
 
-BUFFER copy_buffer(BUFFER src)
+buffer copy_buffer(buffer src)
 {
-    BUFFER copy = malloc(sizeof(struct BUFFER));
+    buffer copy = malloc(sizeof(struct buffer));
 
     copy->iterator = src->iterator;
 
@@ -832,7 +808,7 @@ BUFFER copy_buffer(BUFFER src)
 
 
 
-void append_at(BUFFER src)
+void append_at(buffer src)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -843,7 +819,7 @@ void append_at(BUFFER src)
     memcpy(CURRENT_BUFFER->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
 }
 
-void append_to(BUFFER dest)
+void append_to(buffer dest)
 {
     #ifdef ERROR_CHECKING
     error_if(dest == NULL,ERROR_BAD_BUFFER);
@@ -854,7 +830,7 @@ void append_to(BUFFER dest)
     memcpy(dest->data_buffer + size * old_num_element,CURRENT_BUFFER->data_buffer,util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements);
 }
 
-void append_buffer_at(BUFFER src, BUFFER dest)
+void append_buffer_at(buffer src, buffer dest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -865,7 +841,7 @@ void append_buffer_at(BUFFER src, BUFFER dest)
     memcpy(dest->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
 }
 
-void append_element_at(BUFFER src, uint index)
+void append_element_at(buffer src, uint index)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -876,7 +852,7 @@ void append_element_at(BUFFER src, uint index)
     memcpy(CURRENT_BUFFER->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
 }
 
-void append_element_to(BUFFER dest, uint index)
+void append_element_to(buffer dest, uint index)
 {
     #ifdef ERROR_CHECKING
     error_if(dest == NULL,ERROR_BAD_BUFFER);
@@ -887,7 +863,7 @@ void append_element_to(BUFFER dest, uint index)
     memcpy(dest->data_buffer + size * old_num_element,CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,index),util_get_size(CURRENT_BUFFER));
 }
 
-void append_buffer_element_at(BUFFER src, uint index, BUFFER dest)
+void append_buffer_element_at(buffer src, uint index, buffer dest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -916,7 +892,7 @@ void pop_types(uint num_types)
     CURRENT_TYPES = realloc(CURRENT_TYPES,CURRENT_NUM_TYPES * sizeof(enum TYPE));
 }
 
-void* dump_buffer_binary(BUFFER target, uint* size)
+void* dump_buffer_binary(buffer target, uint* size)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -927,7 +903,7 @@ void* dump_buffer_binary(BUFFER target, uint* size)
     memcpy(bin_data,target->data_buffer,*size);
     return bin_data;
 }
-void load_buffer_binary(BUFFER target, void* bin_data, uint size)
+void load_buffer_binary(buffer target, void* bin_data, uint size)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
