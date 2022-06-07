@@ -23,10 +23,11 @@ enum ERRORS
     ERROR_UNEQUAL_ELEMENT_SIZE,
     ERROR_SMALL_DEST_BUFFER,
     ERROR_INVALID_NUM_TYPES,
-    ERROR_NO_BOUND_BUFFER
+    ERROR_NO_BOUND_BUFFER,
+    NUM_ERROR_MESSAGES
 };
 
-const char* error_messages[11] = {
+const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
     "ERROR_INVALID_FIELD",
     "ERROR_NO_PUSHED_TYPES",
     "ERROR_INVALID_DATA",
@@ -61,7 +62,7 @@ void error_if(int failure, uint error, const char* function)
 {
     if (failure)
     {
-        printf("%s errored with code %u: %s\n",function,error,error_messages[error]);
+        printf("%s errored with code %u: %s\n",function,error,ERROR_MESSAGES[error]);
         exit(error + 100);
     }
 }

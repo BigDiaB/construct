@@ -25,8 +25,8 @@ typedef uint32_t uint;
 typedef void* buffer;
 
 /* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
+#define BUFFER VOID
 enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
-
 
 /* Flushes the type-stack */
 void flush_types();
