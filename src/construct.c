@@ -780,7 +780,8 @@ void copy_from_buffer(buffer src)
 void copy_buffer_to_buffer(buffer src,buffer dest)
 {
     #ifdef ERROR_CHECKING
-    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    error_if(src == NULL,ERROR_BAD_BUFFER);
+    error_if(dest == NULL,ERROR_BAD_BUFFER);
     error_if(get_buffer_element_size(dest) != get_buffer_element_size(src),ERROR_UNEQUAL_ELEMENT_SIZE);
     error_if(dest->num_elements < src->num_elements, ERROR_SMALL_DEST_BUFFER);
     #endif
