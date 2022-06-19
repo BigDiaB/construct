@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
-typedef uint32_t uint;
 
 #include <DBG/debug.h>
 
-enum TYPE
+enum type
 {
     UINT,INT,FLOAT,CHAR,UCHAR,VOID
 };
@@ -43,9 +41,9 @@ const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
 
 struct buffer
 {
-    uint iterator,num_types,num_elements;
+    unsigned int iterator,num_types,num_elements;
     void* data_buffer;
-    enum TYPE* types;
+    enum type* types;
 };
 
 typedef struct buffer* buffer;
@@ -53,12 +51,113 @@ typedef struct buffer* buffer;
 #define cast_to(type) *(type*)
 
 buffer CURRENT_BUFFER = NULL;
-enum TYPE* CURRENT_TYPES = NULL;
-uint CURRENT_NUM_TYPES = 0;
+enum type* CURRENT_TYPES = NULL;
+unsigned int CURRENT_NUM_TYPES = 0;
 
-const uint sizes[6] = {sizeof(uint),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
+const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
-void error_if(int failure, uint error, const char* function)
+void error_if(int failure, unsigned int error, const char* function);
+unsigned int util_get_size(buffer target);
+void swap(void* src1, void* src2, unsigned int size);
+
+buffer init_buffer(unsigned int num_elements);
+void deinit_buffer(buffer target);
+void bind_buffer_at(buffer target, unsigned int index);
+unsigned int iterate_over(buffer target);
+buffer create_single_buffer_element(buffer target);
+buffer create_single_element();
+
+void push_type(enum type t);
+void repush_buffer_types(buffer target);
+void repush_types();
+void flush_types();
+void pop_types(unsigned int num_types);
+
+void* get_field(unsigned int field);
+unsigned int get_fieldui(unsigned int field);
+int get_fieldi(unsigned int field);
+float get_fieldf(unsigned int field);
+char get_fieldc(unsigned int field);
+unsigned char get_fielduc(unsigned int field);
+void* get_fieldv(unsigned int field);
+
+void* get_buffer_field(buffer target, unsigned int element, unsigned int field);
+unsigned int get_buffer_fieldui(buffer target, unsigned int element, unsigned int field);
+int get_buffer_fieldi(buffer target, unsigned int element, unsigned int field);
+float get_buffer_fieldf(buffer target, unsigned int element, unsigned int field);
+char get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
+unsigned char get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
+void* get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
+
+void set_field(unsigned int field, void* data);
+void set_fieldui(unsigned int field, unsigned int data);
+void set_fieldi(unsigned int field, int data);
+void set_fieldf(unsigned int field, float data);
+void set_fieldc(unsigned int field, char data);
+void set_fielduc(unsigned int field, unsigned char data);
+void set_fieldv(unsigned int field, void* data);
+
+void set_buffer_field(buffer target, unsigned int element, unsigned int field, void* data);
+void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field, unsigned int data);
+void set_buffer_fieldi(buffer target, unsigned int element, unsigned int field, int data);
+void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field, float data);
+void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field, char data);
+void set_buffer_fielduc(buffer target, unsigned int element, unsigned int field, unsigned char data);
+void set_buffer_fieldv(buffer target, unsigned int element, unsigned int field, void* data);
+
+unsigned int get_buffer_size(buffer target);
+void zero_buffer_out(buffer target);
+
+unsigned int get_size();
+void zero_out();
+
+void* get_data_buffer();
+void swap_at(unsigned int idx1, unsigned int idx2);
+void replace_at(unsigned int index, buffer data);
+void remove_at(unsigned int index);
+void resize(unsigned int num_elements);
+unsigned int get_element_size();
+void set_iterator(unsigned int iterator);
+unsigned int get_iterator();
+unsigned int get_length();
+unsigned int get_element_data_offset(unsigned int index);
+
+void* get_buffer_data_buffer(buffer target);
+void swap_buffer_at(buffer target, unsigned int idx1, unsigned int idx2);
+void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
+void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
+void replace_buffer_at(buffer target, unsigned int index, buffer element);
+void remove_buffer_at(buffer target,unsigned int index);
+void resize_buffer(buffer target, unsigned int num_elements);
+unsigned int get_buffer_element_size(buffer target);
+void set_buffer_iterator(buffer target,unsigned int iterator);
+unsigned int get_buffer_iterator(buffer target);
+unsigned int get_buffer_length(buffer target);
+unsigned int get_buffer_element_data_offset(buffer target, unsigned int index);
+
+void copy_to_buffer(buffer dest);
+void copy_from_buffer(buffer src);
+void copy_buffer_to_buffer(buffer src,buffer dest);
+buffer copy_buffer(buffer src);
+
+void append_at(buffer src);
+void append_to(buffer dest);
+void append_buffer_at(buffer src, buffer dest);
+void append_element_at(buffer src, unsigned int index);
+void append_element_to(buffer dest, unsigned int index);
+void append_buffer_element_at(buffer src, unsigned int index, buffer dest);
+
+void* dump_buffer_binary(buffer target, unsigned int* size);
+void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
+
+void* dump_binary(unsigned int* size);
+void load_binary(void* bin_data, unsigned int size);
+
+
+
+
+
+void error_if(int failure, unsigned int error, const char* function)
 {
     if (failure)
     {
@@ -69,15 +168,15 @@ void error_if(int failure, uint error, const char* function)
 
 #define error_if(failure,error)     error_if(failure,error,__FUNCTION__);
 
-uint util_get_size(buffer target)
+unsigned int util_get_size(buffer target)
 {
-    uint i, size = 0;
+    unsigned int i, size = 0;
     for (i = 0; i < target->num_types; i++)
         size += sizes[target->types[i]];
     return size;
 }
 
-void swap(void* src1, void* src2, uint size)
+void swap(void* src1, void* src2, unsigned int size)
 {
     uint8_t temp[size];
     memcpy(temp,src2,size);
@@ -85,28 +184,28 @@ void swap(void* src1, void* src2, uint size)
     memcpy(src1, temp,size);
 }
 
-void push_type(enum TYPE t)
+void push_type(enum type t)
 {
     if (CURRENT_TYPES == NULL)
     {
         CURRENT_TYPES = malloc(0);
         CURRENT_NUM_TYPES = 0;
     }
-    CURRENT_TYPES = realloc(CURRENT_TYPES,(CURRENT_NUM_TYPES + 1) * sizeof(enum TYPE));
+    CURRENT_TYPES = realloc(CURRENT_TYPES,(CURRENT_NUM_TYPES + 1) * sizeof(enum type));
     CURRENT_TYPES[CURRENT_NUM_TYPES] = t;
     CURRENT_NUM_TYPES++;
 }
 
-void bind_buffer_at(buffer target, uint index)
+void bind_buffer_at(buffer target, unsigned int index)
 {
-#ifdef ERROR_CHECKING
+    #ifdef ERROR_CHECKING
 	error_if(target == NULL,ERROR_BAD_BUFFER);
-#endif
+    #endif
 	CURRENT_BUFFER = target;
     CURRENT_BUFFER->iterator = index;
 }
 
-uint get_buffer_size(buffer target)
+unsigned int get_buffer_size(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -114,7 +213,7 @@ uint get_buffer_size(buffer target)
     return util_get_size(target) * target->num_elements;
 }
 
-uint get_size()
+unsigned int get_size()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -138,7 +237,7 @@ void zero_out()
     memset(CURRENT_BUFFER->data_buffer,0,get_buffer_size(CURRENT_BUFFER));
 }
 
-buffer init_buffer(uint num_elements)
+buffer init_buffer(unsigned int num_elements)
 {
     buffer target;
     target = malloc(sizeof(struct buffer));
@@ -153,7 +252,7 @@ buffer init_buffer(uint num_elements)
     target->types = CURRENT_TYPES;
 
     
-    uint size = util_get_size(target);
+    unsigned int size = util_get_size(target);
 
     target->data_buffer = malloc(num_elements * size);
     target->num_elements = num_elements;
@@ -183,7 +282,7 @@ void* get_data_buffer()
     return CURRENT_BUFFER->data_buffer;
 }
 
-uint iterate_over(buffer target)
+unsigned int iterate_over(buffer target)
 {   
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -201,59 +300,59 @@ uint iterate_over(buffer target)
     }
 }
 
-void swap_at(uint idx1, uint idx2)
+void swap_at(unsigned int idx1, unsigned int idx2)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     error_if(idx1 >= CURRENT_BUFFER->num_elements || idx2 >= CURRENT_BUFFER->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
 
     swap(CURRENT_BUFFER->data_buffer + size * idx1,CURRENT_BUFFER->data_buffer + size * idx2,size);
 }
 
-void replace_at(uint index, buffer data)
+void replace_at(unsigned int index, buffer data)
 {
     #ifdef ERROR_CHECKING
     error_if(data == NULL,ERROR_INVALID_DATA);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
     memcpy(CURRENT_BUFFER->data_buffer + size * index,data->data_buffer,size);
 }
 
-void remove_at(uint index)
+void remove_at(unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint i,size = util_get_size(CURRENT_BUFFER);
+    unsigned int i,size = util_get_size(CURRENT_BUFFER);
     CURRENT_BUFFER->num_elements--;
     for (i = index; i < CURRENT_BUFFER->num_elements; i++)
         memcpy(CURRENT_BUFFER->data_buffer + size * i,CURRENT_BUFFER->data_buffer + size * (i + 1), size);
     CURRENT_BUFFER->data_buffer = realloc(CURRENT_BUFFER->data_buffer,CURRENT_BUFFER->num_elements * size);
 }
 
-void resize(uint num_elements)
+void resize(unsigned int num_elements)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
     CURRENT_BUFFER->num_elements = num_elements;
     CURRENT_BUFFER->data_buffer = realloc(CURRENT_BUFFER->data_buffer,num_elements * size);
 }
 
-uint get_element_size()
+unsigned int get_element_size()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
     return size;
 }
 
-void set_iterator(uint iterator)
+void set_iterator(unsigned int iterator)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -261,7 +360,7 @@ void set_iterator(uint iterator)
     CURRENT_BUFFER->iterator = iterator - 1;
 }
 
-uint get_iterator()
+unsigned int get_iterator()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -269,7 +368,7 @@ uint get_iterator()
     return CURRENT_BUFFER->iterator;
 }
 
-uint get_length()
+unsigned int get_length()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -277,9 +376,9 @@ uint get_length()
     return CURRENT_BUFFER->num_elements;
 }
 
-void* get_field(uint field)
+void* get_field(unsigned int field)
 {
-    uint i,off = 0,size = util_get_size(CURRENT_BUFFER);
+    unsigned int i,off = 0,size = util_get_size(CURRENT_BUFFER);
     for (i = 0; i < field; i++)
         off += sizes[CURRENT_BUFFER->types[i]];
 
@@ -287,7 +386,7 @@ void* get_field(uint field)
 }
 
 
-uint get_fieldui(uint field)
+unsigned int get_fieldui(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -295,9 +394,10 @@ uint get_fieldui(uint field)
     error_if(UINT != CURRENT_BUFFER->types[field],ERROR_INVALID_TYPE);
     #endif
     
-    return cast_to(uint)get_field(field);
+    return cast_to(unsigned int)get_field(field);
 }
-int get_fieldi(uint field)
+
+int get_fieldi(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -307,7 +407,8 @@ int get_fieldi(uint field)
 
     return cast_to(int)get_field(field);
 }
-float get_fieldf(uint field)
+
+float get_fieldf(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -318,7 +419,8 @@ float get_fieldf(uint field)
 
     return cast_to(float)get_field(field);
 }
-char get_fieldc(uint field)
+
+char get_fieldc(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -329,7 +431,8 @@ char get_fieldc(uint field)
 
     return cast_to(char)get_field(field);
 }
-unsigned char get_fielduc(uint field)
+
+unsigned char get_fielduc(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -340,7 +443,7 @@ unsigned char get_fielduc(uint field)
     return cast_to(unsigned char)get_field(field);
 }
 
-void* get_fieldv(uint field)
+void* get_fieldv(unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -351,7 +454,7 @@ void* get_fieldv(uint field)
     return cast_to(void*)get_field(field);
 }
 
-void set_field(uint field, void* data)
+void set_field(unsigned int field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -360,7 +463,7 @@ void set_field(uint field, void* data)
     memcpy(get_field(field),data,sizes[CURRENT_BUFFER->types[field]]);
 }
 
-void set_fieldui(uint field, uint data)
+void set_fieldui(unsigned int field, unsigned int data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -371,7 +474,7 @@ void set_fieldui(uint field, uint data)
     set_field(field,&data);
 }
 
-void set_fieldi(uint field, int data)
+void set_fieldi(unsigned int field, int data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -382,7 +485,7 @@ void set_fieldi(uint field, int data)
     set_field(field,&data);
 }
 
-void set_fieldf(uint field, float data)
+void set_fieldf(unsigned int field, float data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -392,7 +495,7 @@ void set_fieldf(uint field, float data)
     set_field(field,&data);
 }
 
-void set_fieldc(uint field, char data)
+void set_fieldc(unsigned int field, char data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -403,7 +506,7 @@ void set_fieldc(uint field, char data)
     set_field(field,&data);
 }
 
-void set_fielduc(uint field, unsigned char data)
+void set_fielduc(unsigned int field, unsigned char data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -414,7 +517,7 @@ void set_fielduc(uint field, unsigned char data)
     set_field(field,&data);
 }
 
-void set_fieldv(uint field, void* data)
+void set_fieldv(unsigned int field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -425,7 +528,7 @@ void set_fieldv(uint field, void* data)
     set_field(field,&data);
 }
 
-uint get_element_data_offset(uint index)
+unsigned int get_element_data_offset(unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -433,7 +536,7 @@ uint get_element_data_offset(uint index)
     return util_get_size(CURRENT_BUFFER) * index;
 }
 
-uint get_buffer_element_data_offset(buffer target, uint index)
+unsigned int get_buffer_element_data_offset(buffer target, unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -449,18 +552,18 @@ void* get_buffer_data_buffer(buffer target)
     return target->data_buffer;
 }
 
-void swap_buffer_at(buffer target, uint idx1, uint idx2)
+void swap_buffer_at(buffer target, unsigned int idx1, unsigned int idx2)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     error_if(idx1 > target->num_elements || idx2 > target->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
     #endif
-    uint size = util_get_size(target);
+    unsigned int size = util_get_size(target);
 
     swap(target->data_buffer + get_buffer_element_data_offset(target,idx1),target->data_buffer + get_buffer_element_data_offset(target,idx2),size);
 }
 
-void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
+void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -470,11 +573,11 @@ void swap_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
     error_if(dest->num_elements < src->num_elements, ERROR_SMALL_DEST_BUFFER);
     #endif
 
-    uint size = util_get_size(src);
+    unsigned int size = util_get_size(src);
     swap(src->data_buffer + size * idxsrc,dest->data_buffer + size * idxdest,size);
 }
 
-void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest)
+void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
@@ -484,51 +587,51 @@ void replace_buffer_at_buffer(buffer src, uint idxsrc, buffer dest, uint idxdest
     error_if(dest->num_elements < src->num_elements, ERROR_SMALL_DEST_BUFFER);
     #endif
 
-    uint size = util_get_size(src);
+    unsigned int size = util_get_size(src);
     memcpy(dest->data_buffer + size * idxdest,src->data_buffer + size * idxsrc,size);
 }
 
-void replace_buffer_at(buffer target, uint index, buffer element)
+void replace_buffer_at(buffer target, unsigned int index, buffer element)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint size = util_get_size(target);
+    unsigned int size = util_get_size(target);
     memcpy(target->data_buffer + size * index,element->data_buffer,size);
 }
 
-void remove_buffer_at(buffer target,uint index)
+void remove_buffer_at(buffer target,unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint i,size = util_get_size(target);
+    unsigned int i,size = util_get_size(target);
     target->num_elements--;
     for (i = index; i < target->num_elements; i++)
         memcpy(target->data_buffer + size * i,target->data_buffer + size * (i + 1), size);
     target->data_buffer = realloc(target->data_buffer,target->num_elements * size);
 }
 
-void resize_buffer(buffer target, uint num_elements)
+void resize_buffer(buffer target, unsigned int num_elements)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint size = util_get_size(target);
+    unsigned int size = util_get_size(target);
     target->num_elements = num_elements;
     target->data_buffer = realloc(target->data_buffer,num_elements * size);
 }
 
-uint get_buffer_element_size(buffer target)
+unsigned int get_buffer_element_size(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint size = util_get_size(target);
+    unsigned int size = util_get_size(target);
     return size;
 }
 
-void set_buffer_iterator(buffer target,uint iterator)
+void set_buffer_iterator(buffer target,unsigned int iterator)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -536,7 +639,7 @@ void set_buffer_iterator(buffer target,uint iterator)
     target->iterator = iterator - 1;
 }
 
-uint get_buffer_iterator(buffer target)
+unsigned int get_buffer_iterator(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -544,7 +647,7 @@ uint get_buffer_iterator(buffer target)
     return target->iterator;
 }
 
-uint get_buffer_length(buffer target)
+unsigned int get_buffer_length(buffer target)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -552,12 +655,12 @@ uint get_buffer_length(buffer target)
     return target->num_elements;
 }
 
-void* get_buffer_field(buffer target, uint element, uint field)
+void* get_buffer_field(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint i,off = 0,size = util_get_size(target);
+    unsigned int i,off = 0,size = util_get_size(target);
     for (i = 0; i < field; i++)
         off += sizes[target->types[i]];
 
@@ -565,7 +668,7 @@ void* get_buffer_field(buffer target, uint element, uint field)
 }
 
 
-uint get_buffer_fieldui(buffer target, uint element, uint field)
+unsigned int get_buffer_fieldui(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -573,9 +676,10 @@ uint get_buffer_fieldui(buffer target, uint element, uint field)
     error_if(UINT != target->types[field],ERROR_INVALID_TYPE);
     #endif
     
-    return cast_to(uint)get_buffer_field(target,element,field);
+    return cast_to(unsigned int)get_buffer_field(target,element,field);
 }
-int get_buffer_fieldi(buffer target, uint element, uint field)
+
+int get_buffer_fieldi(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -585,7 +689,8 @@ int get_buffer_fieldi(buffer target, uint element, uint field)
 
     return cast_to(int)get_buffer_field(target,element,field);
 }
-float get_buffer_fieldf(buffer target, uint element, uint field)
+
+float get_buffer_fieldf(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -595,7 +700,8 @@ float get_buffer_fieldf(buffer target, uint element, uint field)
 
     return cast_to(float)get_buffer_field(target,element,field);
 }
-char get_buffer_fieldc(buffer target, uint element, uint field)
+
+char get_buffer_fieldc(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -605,7 +711,8 @@ char get_buffer_fieldc(buffer target, uint element, uint field)
 
     return cast_to(char)get_buffer_field(target,element,field);
 }
-unsigned char get_buffer_fielduc(buffer target, uint element, uint field)
+
+unsigned char get_buffer_fielduc(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -616,7 +723,7 @@ unsigned char get_buffer_fielduc(buffer target, uint element, uint field)
     return cast_to(unsigned char)get_buffer_field(target,element,field);
 }
 
-void* get_buffer_fieldv(buffer target, uint element, uint field)
+void* get_buffer_fieldv(buffer target, unsigned int element, unsigned int field)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -627,7 +734,7 @@ void* get_buffer_fieldv(buffer target, uint element, uint field)
     return cast_to(void*)get_buffer_field(target,element,field);
 }
 
-void set_buffer_field(buffer target, uint element, uint field, void* data)
+void set_buffer_field(buffer target, unsigned int element, unsigned int field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -638,7 +745,7 @@ void set_buffer_field(buffer target, uint element, uint field, void* data)
     memcpy(get_buffer_field(target,element,field),data,sizes[target->types[field]]);
 }
 
-void set_buffer_fieldui(buffer target, uint element, uint field, uint data)
+void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field, unsigned int data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -649,7 +756,7 @@ void set_buffer_fieldui(buffer target, uint element, uint field, uint data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldi(buffer target, uint element, uint field, int data)
+void set_buffer_fieldi(buffer target, unsigned int element, unsigned int field, int data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -660,7 +767,7 @@ void set_buffer_fieldi(buffer target, uint element, uint field, int data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldf(buffer target, uint element, uint field, float data)
+void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field, float data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -671,7 +778,7 @@ void set_buffer_fieldf(buffer target, uint element, uint field, float data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldc(buffer target, uint element, uint field, char data)
+void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field, char data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -682,7 +789,7 @@ void set_buffer_fieldc(buffer target, uint element, uint field, char data)
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fielduc(buffer target, uint element, uint field, unsigned char data)
+void set_buffer_fielduc(buffer target, unsigned int element, unsigned int field, unsigned char data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -693,7 +800,7 @@ void set_buffer_fielduc(buffer target, uint element, uint field, unsigned char d
     set_buffer_field(target,element, field,&data);
 }
 
-void set_buffer_fieldv(buffer target, uint element, uint field, void* data)
+void set_buffer_fieldv(buffer target, unsigned int element, unsigned int field, void* data)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -709,16 +816,17 @@ void repush_buffer_types(buffer target)
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint i;
+    unsigned int i;
     for (i = 0; i < target->num_types; i++)
         push_type(target->types[i]);
 }
+
 void repush_types()
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint i;
+    unsigned int i;
     for (i = 0; i < CURRENT_BUFFER->num_types; i++)
         push_type(CURRENT_BUFFER->types[i]);
 }
@@ -729,9 +837,9 @@ buffer create_single_buffer_element(buffer target)
     element = malloc(sizeof(struct buffer));
     element->num_types = target->num_types;
     element->iterator = -1;
-    element->types = malloc(sizeof(enum TYPE) * target->num_types);
-    memcpy(element->types,target->types,sizeof(enum TYPE) * target->num_types);
-    uint size = util_get_size(target);
+    element->types = malloc(sizeof(enum type) * target->num_types);
+    memcpy(element->types,target->types,sizeof(enum type) * target->num_types);
+    unsigned int size = util_get_size(target);
     element->data_buffer = malloc(size);
     element->num_elements = 1;
 
@@ -747,9 +855,9 @@ buffer create_single_element()
     element = malloc(sizeof(struct buffer));
     element->num_types = CURRENT_BUFFER->num_types;
     element->iterator = -1;
-    element->types = malloc(sizeof(enum TYPE) * CURRENT_BUFFER->num_types);
-    memcpy(element->types,CURRENT_BUFFER->types,sizeof(enum TYPE) * CURRENT_BUFFER->num_types);
-    uint size = util_get_size(CURRENT_BUFFER);
+    element->types = malloc(sizeof(enum type) * CURRENT_BUFFER->num_types);
+    memcpy(element->types,CURRENT_BUFFER->types,sizeof(enum type) * CURRENT_BUFFER->num_types);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
     element->data_buffer = malloc(size);
     element->num_elements = 1;
 
@@ -794,9 +902,9 @@ buffer copy_buffer(buffer src)
 
     copy->iterator = src->iterator;
 
-    uint i, size = util_get_size(src);
+    unsigned int i, size = util_get_size(src);
     copy->num_types = src->num_types;
-    copy->types = malloc(sizeof(enum TYPE) * copy->num_types);
+    copy->types = malloc(sizeof(enum type) * copy->num_types);
     for (i = 0; i < src->num_types; i++)
         copy->types[i] = src->types[i];
 
@@ -816,7 +924,7 @@ void append_at(buffer src)
     error_if(src == NULL,ERROR_BAD_BUFFER);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER),old_num_element = CURRENT_BUFFER->num_elements;
+    unsigned int size = util_get_size(CURRENT_BUFFER),old_num_element = CURRENT_BUFFER->num_elements;
     resize_buffer(CURRENT_BUFFER,CURRENT_BUFFER->num_elements + src->num_elements);
     memcpy(CURRENT_BUFFER->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
 }
@@ -827,7 +935,7 @@ void append_to(buffer dest)
     error_if(dest == NULL,ERROR_BAD_BUFFER);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
     resize_buffer(dest,dest->num_elements + CURRENT_BUFFER->num_elements);
     memcpy(dest->data_buffer + size * old_num_element,CURRENT_BUFFER->data_buffer,util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements);
 }
@@ -838,39 +946,39 @@ void append_buffer_at(buffer src, buffer dest)
     error_if(src == NULL,ERROR_BAD_BUFFER);
     error_if(dest == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
     resize_buffer(dest,dest->num_elements + src->num_elements);
     memcpy(dest->data_buffer + size * old_num_element,src->data_buffer,util_get_size(src) * src->num_elements);
 }
 
-void append_element_at(buffer src, uint index)
+void append_element_at(buffer src, unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(CURRENT_BUFFER),old_num_element = CURRENT_BUFFER->num_elements;
+    unsigned int size = util_get_size(CURRENT_BUFFER),old_num_element = CURRENT_BUFFER->num_elements;
     resize_buffer(CURRENT_BUFFER,CURRENT_BUFFER->num_elements + src->num_elements);
     memcpy(CURRENT_BUFFER->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
 }
 
-void append_element_to(buffer dest, uint index)
+void append_element_to(buffer dest, unsigned int index)
 {
     #ifdef ERROR_CHECKING
     error_if(dest == NULL,ERROR_BAD_BUFFER);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
     resize_buffer(dest,dest->num_elements + CURRENT_BUFFER->num_elements);
     memcpy(dest->data_buffer + size * old_num_element,CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,index),util_get_size(CURRENT_BUFFER));
 }
 
-void append_buffer_element_at(buffer src, uint index, buffer dest)
+void append_buffer_element_at(buffer src, unsigned int index, buffer dest)
 {
     #ifdef ERROR_CHECKING
     error_if(src == NULL,ERROR_BAD_BUFFER);
     #endif
-    uint size = util_get_size(dest),old_num_element = dest->num_elements;
+    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
     resize_buffer(dest,dest->num_elements + src->num_elements);
     memcpy(dest->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
 }
@@ -885,27 +993,39 @@ void flush_types()
     CURRENT_NUM_TYPES = 0;
 }
 
-void pop_types(uint num_types)
+void pop_types(unsigned int num_types)
 {
     #ifdef ERROR_CHECKING
     error_if(num_types < num_types,ERROR_INVALID_NUM_TYPES);
     #endif
     CURRENT_NUM_TYPES -= num_types;
-    CURRENT_TYPES = realloc(CURRENT_TYPES,CURRENT_NUM_TYPES * sizeof(enum TYPE));
+    CURRENT_TYPES = realloc(CURRENT_TYPES,CURRENT_NUM_TYPES * sizeof(enum type));
 }
 
-void* dump_buffer_binary(buffer target, uint* size)
+void* dump_buffer_binary(buffer target, unsigned int* size)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
-    error_if(size == NULL,ERROR_INVALID_DATA);
     #endif
-    *size = util_get_size(target) * target->num_elements;
-    void* bin_data = malloc(*size); 
-    memcpy(bin_data,target->data_buffer,*size);
+
+    void* bin_data;
+
+    if (size == NULL)
+    {
+        bin_data = malloc(util_get_size(target) * target->num_elements); 
+        memcpy(bin_data,target->data_buffer,util_get_size(target) * target->num_elements);
+    }
+    else
+    {
+        *size = util_get_size(target) * target->num_elements;
+        bin_data = malloc(*size); 
+        memcpy(bin_data,target->data_buffer,*size);
+    }
+    
     return bin_data;
 }
-void load_buffer_binary(buffer target, void* bin_data, uint size)
+
+void load_buffer_binary(buffer target, void* bin_data, unsigned int size)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -922,18 +1042,30 @@ void load_buffer_binary(buffer target, void* bin_data, uint size)
     }
 }
 
-void* dump_binary(uint* size)
+void* dump_binary(unsigned int* size)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
-    error_if(size == NULL,ERROR_INVALID_DATA);
     #endif
-    *size = util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements;
-    void* bin_data = malloc(*size); 
-    memcpy(bin_data,CURRENT_BUFFER->data_buffer,*size);
+
+    void* bin_data;
+
+    if (size == NULL)
+    {
+        bin_data = malloc(util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements); 
+        memcpy(bin_data,CURRENT_BUFFER->data_buffer,util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements);
+    }
+    else
+    {
+        *size = util_get_size(CURRENT_BUFFER) * CURRENT_BUFFER->num_elements;
+        bin_data = malloc(*size); 
+        memcpy(bin_data,CURRENT_BUFFER->data_buffer,*size);
+    }
+
     return bin_data;
 }
-void load_binary(void* bin_data, uint size)
+
+void load_binary(void* bin_data, unsigned int size)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
