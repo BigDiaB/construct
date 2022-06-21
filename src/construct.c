@@ -53,7 +53,6 @@ typedef struct buffer* buffer;
 buffer CURRENT_BUFFER = NULL;
 enum type* CURRENT_TYPES = NULL;
 unsigned int CURRENT_NUM_TYPES = 0;
-
 const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
 void error_if(int failure, unsigned int error, const char* function);
@@ -1081,3 +1080,247 @@ void load_binary(void* bin_data, unsigned int size)
         memcpy(CURRENT_BUFFER->data_buffer,bin_data,size);
     }
 }
+
+buffer get_current_buffer()
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+
+    return CURRENT_BUFFER;
+}
+
+void reverse()
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+
+    unsigned int i, num_elements = CURRENT_BUFFER->num_elements;
+
+    for (i = 0; i < num_elements; i++)
+        swap_buffer_at(CURRENT_BUFFER,num_elements - i - 1, i);
+}
+
+void reverse_buffer(buffer target)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    #endif
+
+    unsigned int i, num_elements = target->num_elements;
+    for (i = 0; i < num_elements; i++)
+        swap_buffer_at(target,num_elements - i - 1, i);
+}
+
+buffer recreate()
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+
+    buffer recreation;
+    recreation = malloc(sizeof(struct buffer));
+    recreation->num_types = CURRENT_BUFFER->num_types;
+    recreation->iterator = -1;
+    recreation->types = malloc(sizeof(enum type) * CURRENT_BUFFER->num_types);
+    memcpy(recreation->types,CURRENT_BUFFER->types,sizeof(enum type) * CURRENT_BUFFER->num_types);
+    unsigned int size = util_get_size(CURRENT_BUFFER);
+    recreation->num_elements = CURRENT_BUFFER->num_elements;
+    recreation->data_buffer = malloc(size * recreation->num_elements);
+
+    return recreation;
+}
+
+
+buffer recreate_buffer(buffer target)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    #endif
+
+    buffer recreation;
+    recreation = malloc(sizeof(struct buffer));
+    recreation->num_types = target->num_types;
+    recreation->iterator = -1;
+    recreation->types = malloc(sizeof(enum type) * target->num_types);
+    memcpy(recreation->types,target->types,sizeof(enum type) * target->num_types);
+    unsigned int size = util_get_size(target);
+    recreation->num_elements = target->num_elements;
+    recreation->data_buffer = malloc(size * recreation->num_elements);
+
+    return recreation;
+}
+
+void sort_by_field(unsigned int more,unsigned int field, enum type type)
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    #endif
+
+    int step,size = get_buffer_length(CURRENT_BUFFER);
+    for (step = 0; step < size - 1; ++step)
+    {
+        int i,swapped = 0;
+        for (i = 0; i < size - step - 1; ++i)
+        {
+            int condition = 0;
+
+            if (more)
+            {
+                switch(type)
+                {
+                    case UINT:
+                    condition = get_buffer_fieldui(CURRENT_BUFFER,i,field) > get_buffer_fieldui(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case INT:
+                    condition = get_buffer_fieldi(CURRENT_BUFFER,i,field) > get_buffer_fieldi(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case CHAR:
+                    condition = get_buffer_fieldc(CURRENT_BUFFER,i,field) > get_buffer_fieldc(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case UCHAR:
+                    condition = get_buffer_fielduc(CURRENT_BUFFER,i,field) > get_buffer_fielduc(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case FLOAT:
+                    condition = get_buffer_fieldf(CURRENT_BUFFER,i,field) > get_buffer_fieldf(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case VOID:
+                    condition = get_buffer_fieldv(CURRENT_BUFFER,i,field) > get_buffer_fieldv(CURRENT_BUFFER,i+1,field);
+                    break;
+                    default:
+                    #ifdef ERROR_CHECKING
+                    error_if(0,ERROR_INVALID_TYPE);
+                    #endif
+                    break;
+                }
+            }
+            else
+            {
+                switch(type)
+                {
+                    case UINT:
+                    condition = get_buffer_fieldui(CURRENT_BUFFER,i,field) < get_buffer_fieldui(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case INT:
+                    condition = get_buffer_fieldi(CURRENT_BUFFER,i,field) < get_buffer_fieldi(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case CHAR:
+                    condition = get_buffer_fieldc(CURRENT_BUFFER,i,field) < get_buffer_fieldc(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case UCHAR:
+                    condition = get_buffer_fielduc(CURRENT_BUFFER,i,field) < get_buffer_fielduc(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case FLOAT:
+                    condition = get_buffer_fieldf(CURRENT_BUFFER,i,field) < get_buffer_fieldf(CURRENT_BUFFER,i+1,field);
+                    break;
+                    case VOID:
+                    condition = get_buffer_fieldv(CURRENT_BUFFER,i,field) < get_buffer_fieldv(CURRENT_BUFFER,i+1,field);
+                    break;
+                    default:
+                    #ifdef ERROR_CHECKING
+                    error_if(0,ERROR_INVALID_TYPE);
+                    #endif
+                    break;
+                }
+            }
+
+            if (condition)
+            {
+                swap_buffer_at(CURRENT_BUFFER,i,i+1);
+                swapped = 1;
+            }
+        }
+        if (swapped == 0)
+        {
+            break;
+        }
+    }
+}
+
+void sort_buffer_by_field(buffer target,unsigned int more,unsigned int field,enum type type)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    #endif
+
+    int step,size = get_buffer_length(target);
+    for (step = 0; step < size - 1; ++step)
+    {
+        int i,swapped = 0;
+        for (i = 0; i < size - step - 1; ++i)
+        {
+            int condition = 0;
+
+            if (more)
+            {
+                switch(type)
+                {
+                    case UINT:
+                    condition = get_buffer_fieldui(target,i,field) > get_buffer_fieldui(target,i+1,field);
+                    break;
+                    case INT:
+                    condition = get_buffer_fieldi(target,i,field) > get_buffer_fieldi(target,i+1,field);
+                    break;
+                    case CHAR:
+                    condition = get_buffer_fieldc(target,i,field) > get_buffer_fieldc(target,i+1,field);
+                    break;
+                    case UCHAR:
+                    condition = get_buffer_fielduc(target,i,field) > get_buffer_fielduc(target,i+1,field);
+                    break;
+                    case FLOAT:
+                    condition = get_buffer_fieldf(target,i,field) > get_buffer_fieldf(target,i+1,field);
+                    break;
+                    case VOID:
+                    condition = get_buffer_fieldv(target,i,field) > get_buffer_fieldv(target,i+1,field);
+                    break;
+                    default:
+                    #ifdef ERROR_CHECKING
+                    error_if(0,ERROR_INVALID_TYPE);
+                    #endif
+                    break;
+                }
+            }
+            else
+            {
+                switch(type)
+                {
+                    case UINT:
+                    condition = get_buffer_fieldui(target,i,field) < get_buffer_fieldui(target,i+1,field);
+                    break;
+                    case INT:
+                    condition = get_buffer_fieldi(target,i,field) < get_buffer_fieldi(target,i+1,field);
+                    break;
+                    case CHAR:
+                    condition = get_buffer_fieldc(target,i,field) < get_buffer_fieldc(target,i+1,field);
+                    break;
+                    case UCHAR:
+                    condition = get_buffer_fielduc(target,i,field) < get_buffer_fielduc(target,i+1,field);
+                    break;
+                    case FLOAT:
+                    condition = get_buffer_fieldf(target,i,field) < get_buffer_fieldf(target,i+1,field);
+                    break;
+                    case VOID:
+                    condition = get_buffer_fieldv(target,i,field) < get_buffer_fieldv(target,i+1,field);
+                    break;
+                    default:
+                    #ifdef ERROR_CHECKING
+                    error_if(0,ERROR_INVALID_TYPE);
+                    #endif
+                    break;
+                }
+            }
+
+            if (condition)
+            {
+                swap_buffer_at(target,i,i+1);
+                swapped = 1;
+            }
+        }
+        if (swapped == 0)
+        {
+            break;
+        }
+    }
+}
+

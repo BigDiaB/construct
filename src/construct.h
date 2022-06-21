@@ -15,10 +15,6 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-	
-/* Unsigned integer-type I use for basically everything */
-#include <inttypes.h>
-typedef unsigned int uint;
 
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
 (Because I don't trust myself having access to the struct in my applications) */
@@ -28,17 +24,9 @@ typedef void* buffer;
 enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 
 /* <Todo> */
-void scramble();
 void scramble_buffer(buffer target);
-
-void reverse();
-void reverse_buffer(buffer target);
-
-void sort_by_field(unsigned int more,unsigned int field);
-void sort_buffer_by_field(buffer target,unsigned int less,unsigned int field);
-
-buffer recreate();
-buffer recreate_buffer(buffer target);
+void scramble();
+/* WIP: */
 /* <\Todo> */
 
 /* Flushes the type-stack */
@@ -60,11 +48,32 @@ buffer init_buffer(unsigned int num_elements);
 void deinit_buffer(buffer target);
 /* Binds the specified buffer at the specified index */
 void bind_buffer_at(buffer target, unsigned int index);
+/* Returns the currently bound buffer */
+buffer get_current_buffer();
+
+/* Sorts the specified buffer in ascending or descending order by the specified field */
+void sort_buffer_by_field(buffer target,unsigned int less,unsigned int field, enum construct_types type);
+/* Sorts the currently bound buffer in ascending or descending order by the specified field */
+void sort_by_field(unsigned int more,unsigned int field, enum construct_types type);
+
+/* Reverses the sequence of elements in the specified buffer */
+void reverse_buffer(buffer target);
+/* Reverses the sequence of elements in the currently bound buffer */
+void reverse();
+
+/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+void resize_buffer(buffer target, unsigned int num_elements);
+/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+void resize(unsigned int num_elements);
 
 /* Returns a buffer with a single element laid out according to the specified buffer */
 buffer create_single_buffer_element(buffer target);
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
 buffer create_single_element();
+/* Returns a buffer with the same type-layout and length as the specified buffer */
+buffer recreate_buffer(buffer target);
+/* Returns a buffer with the same type-layout and length as the currently bound buffer */
+buffer recreate();
 /* Returns a preinitialised copy of the specified buffer */
 buffer copy_buffer(buffer src);
 /* Copys the contents of the currenty bound buffer into the specified buffer */
@@ -83,24 +92,10 @@ void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigne
 /* Replaces the specified buffer at the given index, with the element of another specified buffer at another given index */
 void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
 
-/* Returns an already malloc'ed pointer to a copy of the data buffer of the currently bound buffer and populates size with the length of the data buffer in bytes */
-void* dump_binary(unsigned int* size);
-/* Copies bin_data into the data buffer of the currently bound buffer and resizes it if the given size doesn't match the current size of the currently bound buffer */
-void load_binary(void* bin_data, unsigned int size);
-/* Returns an already malloc'ed pointer to a copy of the data buffer of the specified buffer and populates size with the length of the data buffer in bytes */
-void* dump_buffer_binary(buffer target, unsigned int* size);
-/* Copies bin_data into the data buffer of the specified buffer and resizes it if the given size doesn't match the current size of the specified buffer */
-void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
-
 /* Replaces the specified buffer at the given index, with the given element */
 void replace_buffer_at(buffer target, unsigned int index, buffer element);
 /* Replaces the currently bound buffer at the given index, with the given element */
 void replace_at(unsigned int index, buffer element);
-
-/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
-void resize_buffer(buffer target, unsigned int num_elements);
-/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
-void resize(unsigned int num_elements);
 
 /* Removes an element from the specified buffer at the given index */
 void remove_buffer_at(buffer target, unsigned int index);
@@ -120,6 +115,15 @@ void append_element_at(buffer src, unsigned int index);
 void append_element_to(buffer dest, unsigned int index);
 /* Appends one element at the given index of the specified buffer to another specified buffer buffer */
 void append_buffer_element_at(buffer src, unsigned int index, buffer dest);
+
+/* Returns an already malloc'ed pointer to a copy of the data buffer of the currently bound buffer and populates size with the length of the data buffer in bytes */
+void* dump_binary(unsigned int* size);
+/* Copies bin_data into the data buffer of the currently bound buffer and resizes it if the given size doesn't match the current size of the currently bound buffer */
+void load_binary(void* bin_data, unsigned int size);
+/* Returns an already malloc'ed pointer to a copy of the data buffer of the specified buffer and populates size with the length of the data buffer in bytes */
+void* dump_buffer_binary(buffer target, unsigned int* size);
+/* Copies bin_data into the data buffer of the specified buffer and resizes it if the given size doesn't match the current size of the specified buffer */
+void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
 
 /* sets every single byte in the data-buffer of the currently bound buffer to zero */
 void zero_out();
