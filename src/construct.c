@@ -22,6 +22,7 @@ enum ERRORS
     ERROR_SMALL_DEST_BUFFER,
     ERROR_INVALID_NUM_TYPES,
     ERROR_NO_BOUND_BUFFER,
+    ERROR_INVALID_INDEX,
     NUM_ERROR_MESSAGES
 };
 
@@ -36,7 +37,8 @@ const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
     "ERROR_UNEQUAL_ELEMENT_SIZE",
     "ERROR_SMALL_DEST_BUFFER",
     "ERROR_INVALID_NUM_TYPES",
-    "ERROR_NO_BOUND_BUFFER"
+    "ERROR_NO_BOUND_BUFFER",
+    "ERROR_INVALID_INDEX"
 };
 
 struct buffer
@@ -1324,3 +1326,52 @@ void sort_buffer_by_field(buffer target,unsigned int more,unsigned int field,enu
     }
 }
 
+buffer copy_partial(unsigned int startidx, unsigned int endidx)
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    error_if(startidx > endidx,ERROR_INVALID_INDEX);
+    error_if(endidx >= get_buffer_length(CURRENT_BUFFER),ERROR_OUT_OF_BOUNDS_INDEX);
+    #endif
+
+    buffer copy = malloc(sizeof(struct buffer));
+    copy->iterator = CURRENT_BUFFER->iterator;
+
+    unsigned int i, size = util_get_size(CURRENT_BUFFER);
+    copy->num_types = CURRENT_BUFFER->num_types;
+    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    for (i = 0; i < CURRENT_BUFFER->num_types; i++)
+        copy->types[i] = CURRENT_BUFFER->types[i];
+
+    copy->data_buffer = malloc((endidx - startidx) * size);
+    copy->num_elements = endidx - startidx;
+
+    memcpy(copy->data_buffer,CURRENT_BUFFER->data_buffer + startidx * size,(endidx - startidx) * size);
+
+    return copy;
+}
+
+buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int endidx)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    error_if(startidx > endidx,ERROR_INVALID_INDEX);
+    error_if(endidx >= get_buffer_length(target),ERROR_OUT_OF_BOUNDS_INDEX);
+    #endif
+
+    buffer copy = malloc(sizeof(struct buffer));
+    copy->iterator = target->iterator;
+
+    unsigned int i, size = util_get_size(target);
+    copy->num_types = target->num_types;
+    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    for (i = 0; i < target->num_types; i++)
+        copy->types[i] = target->types[i];
+
+    copy->data_buffer = malloc((endidx - startidx) * size);
+    copy->num_elements = endidx - startidx;
+
+    memcpy(copy->data_buffer,target->data_buffer + startidx * size,(endidx - startidx) * size);
+
+    return copy;
+}

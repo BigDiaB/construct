@@ -26,6 +26,7 @@ enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 /* <Todo> */
 void scramble_buffer(buffer target);
 void scramble();
+
 /* WIP: */
 /* <\Todo> */
 
@@ -66,6 +67,10 @@ void resize_buffer(buffer target, unsigned int num_elements);
 /* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
 void resize(unsigned int num_elements);
 
+/* Returns a buffer, initialised with a partition of the currently bound buffer within the given indices */
+buffer copy_partial(unsigned int startidx, unsigned int endidx);
+/* Returns a buffer, initialised with a partition of the specified buffer within the given indices */
+buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int endidx);
 /* Returns a buffer with a single element laid out according to the specified buffer */
 buffer create_single_buffer_element(buffer target);
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
@@ -113,7 +118,7 @@ void append_buffer_at(buffer src, buffer dest);
 void append_element_at(buffer src, unsigned int index);
 /* Appends one element at the given index of the currently bound buffer to the specified buffer */
 void append_element_to(buffer dest, unsigned int index);
-/* Appends one element at the given index of the specified buffer to another specified buffer buffer */
+/* Appends one element at the given index of the specified buffer to another specified buffer */
 void append_buffer_element_at(buffer src, unsigned int index, buffer dest);
 
 /* Returns an already malloc'ed pointer to a copy of the data buffer of the currently bound buffer and populates size with the length of the data buffer in bytes */

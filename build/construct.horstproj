@@ -1,7 +1,7 @@
 out: construct
 gxx: clang
 gxxflags:
-cxxflags: -W -Wall -Wextra
+cxxflags: -W -Wall -Wextra -O0
 source: ../src/construct.c
 includes: -I../libs/include
 lib_path: -L../libs/lib
