@@ -332,6 +332,7 @@ void remove_at(unsigned int index)
     for (i = index; i < CURRENT_BUFFER->num_elements; i++)
         memcpy(CURRENT_BUFFER->data_buffer + size * i,CURRENT_BUFFER->data_buffer + size * (i + 1), size);
     CURRENT_BUFFER->data_buffer = realloc(CURRENT_BUFFER->data_buffer,CURRENT_BUFFER->num_elements * size);
+    CURRENT_BUFFER->iterator--;
 }
 
 void resize(unsigned int num_elements)
@@ -969,19 +970,20 @@ void append_element_to(buffer dest, unsigned int index)
     error_if(dest == NULL,ERROR_BAD_BUFFER);
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
-    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
-    resize_buffer(dest,dest->num_elements + CURRENT_BUFFER->num_elements);
-    memcpy(dest->data_buffer + size * old_num_element,CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,index),util_get_size(CURRENT_BUFFER));
+    unsigned int size = util_get_size(dest);
+    resize_buffer(dest,dest->num_elements + 1);
+    memcpy(dest->data_buffer + size * (dest->num_elements - 1),CURRENT_BUFFER->data_buffer + size * index,size);
 }
 
 void append_buffer_element_at(buffer src, unsigned int index, buffer dest)
 {
     #ifdef ERROR_CHECKING
+    error_if(dest == NULL,ERROR_BAD_BUFFER);
     error_if(src == NULL,ERROR_BAD_BUFFER);
     #endif
-    unsigned int size = util_get_size(dest),old_num_element = dest->num_elements;
-    resize_buffer(dest,dest->num_elements + src->num_elements);
-    memcpy(dest->data_buffer + size * old_num_element,src->data_buffer + get_buffer_element_data_offset(src,index),util_get_size(src));
+    unsigned int size = util_get_size(dest);
+    resize_buffer(dest,dest->num_elements + 1);
+    memcpy(dest->data_buffer + size * (dest->num_elements - 1),src->data_buffer + size * index,size);
 }
 
 void flush_types()
@@ -1127,9 +1129,8 @@ buffer recreate()
     recreation->iterator = -1;
     recreation->types = malloc(sizeof(enum type) * CURRENT_BUFFER->num_types);
     memcpy(recreation->types,CURRENT_BUFFER->types,sizeof(enum type) * CURRENT_BUFFER->num_types);
-    unsigned int size = util_get_size(CURRENT_BUFFER);
-    recreation->num_elements = CURRENT_BUFFER->num_elements;
-    recreation->data_buffer = malloc(size * recreation->num_elements);
+    recreation->num_elements = 0;
+    recreation->data_buffer = malloc(0);
 
     return recreation;
 }
@@ -1147,9 +1148,8 @@ buffer recreate_buffer(buffer target)
     recreation->iterator = -1;
     recreation->types = malloc(sizeof(enum type) * target->num_types);
     memcpy(recreation->types,target->types,sizeof(enum type) * target->num_types);
-    unsigned int size = util_get_size(target);
-    recreation->num_elements = target->num_elements;
-    recreation->data_buffer = malloc(size * recreation->num_elements);
+    recreation->num_elements = 0;
+    recreation->data_buffer = malloc(0);
 
     return recreation;
 }

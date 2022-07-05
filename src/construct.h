@@ -75,9 +75,9 @@ buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int en
 buffer create_single_buffer_element(buffer target);
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
 buffer create_single_element();
-/* Returns a buffer with the same type-layout and length as the specified buffer */
+/* Returns a buffer with the same type-layout as the specified buffer */
 buffer recreate_buffer(buffer target);
-/* Returns a buffer with the same type-layout and length as the currently bound buffer */
+/* Returns a buffer with the same type-layout as the currently bound buffer */
 buffer recreate();
 /* Returns a preinitialised copy of the specified buffer */
 buffer copy_buffer(buffer src);
