@@ -94,13 +94,18 @@ void swap_at(unsigned int idx1, unsigned int idx2);
 void swap_buffer_at(buffer target,unsigned int idx1, unsigned int idx2);
 /* Swaps the elements of two specified buffers at the given indecies */
 void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
+
+/* Replaces the currently bound buffer at the given index, with the given element */
+void replace_at(unsigned int index, buffer element);
+/* Replaces the specified buffer at the given index, with the given element */
+void replace_buffer_at(buffer target, unsigned int index, buffer element);
 /* Replaces the specified buffer at the given index, with the element of another specified buffer at another given index */
 void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
 
-/* Replaces the specified buffer at the given index, with the given element */
-void replace_buffer_at(buffer target, unsigned int index, buffer element);
-/* Replaces the currently bound buffer at the given index, with the given element */
-void replace_at(unsigned int index, buffer element);
+/* Replaces the element in specified buffer at the destination index with the element at the source index */
+void replace_inside_buffer(buffer target, unsigned int idxsrc, unsigned int idxdest);
+/* Replaces the element in the currently bound buffer at the destination index with the element at the source index */
+void replace_inside(unsigned int idxsrc, unsigned int idxdest);
 
 /* Removes an element from the specified buffer at the given index */
 void remove_buffer_at(buffer target, unsigned int index);

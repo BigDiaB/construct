@@ -61,98 +61,108 @@ void error_if(int failure, unsigned int error, const char* function);
 unsigned int util_get_size(buffer target);
 void swap(void* src1, void* src2, unsigned int size);
 
+void flush_types();
+void pop_types(unsigned int num_types);
+void push_type(enum type type);
+void repush_buffer_types(buffer target);
+void repush_types();
+unsigned int iterate_over(buffer target);
+
 buffer init_buffer(unsigned int num_elements);
 void deinit_buffer(buffer target);
 void bind_buffer_at(buffer target, unsigned int index);
-unsigned int iterate_over(buffer target);
+buffer get_current_buffer();
+
+void sort_buffer_by_field(buffer target,unsigned int less,unsigned int field, enum type type);
+void sort_by_field(unsigned int more,unsigned int field, enum type type);
+
+void reverse_buffer(buffer target);
+void reverse();
+
+void resize_buffer(buffer target, unsigned int num_elements);
+void resize(unsigned int num_elements);
+
+buffer copy_partial(unsigned int startidx, unsigned int endidx);
+buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int endidx);
 buffer create_single_buffer_element(buffer target);
 buffer create_single_element();
-
-void push_type(enum type t);
-void repush_buffer_types(buffer target);
-void repush_types();
-void flush_types();
-void pop_types(unsigned int num_types);
-
-void* get_field(unsigned int field);
-unsigned int get_fieldui(unsigned int field);
-int get_fieldi(unsigned int field);
-float get_fieldf(unsigned int field);
-char get_fieldc(unsigned int field);
-unsigned char get_fielduc(unsigned int field);
-void* get_fieldv(unsigned int field);
-
-void* get_buffer_field(buffer target, unsigned int element, unsigned int field);
-unsigned int get_buffer_fieldui(buffer target, unsigned int element, unsigned int field);
-int get_buffer_fieldi(buffer target, unsigned int element, unsigned int field);
-float get_buffer_fieldf(buffer target, unsigned int element, unsigned int field);
-char get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
-unsigned char get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
-void* get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
-
-void set_field(unsigned int field, void* data);
-void set_fieldui(unsigned int field, unsigned int data);
-void set_fieldi(unsigned int field, int data);
-void set_fieldf(unsigned int field, float data);
-void set_fieldc(unsigned int field, char data);
-void set_fielduc(unsigned int field, unsigned char data);
-void set_fieldv(unsigned int field, void* data);
-
-void set_buffer_field(buffer target, unsigned int element, unsigned int field, void* data);
-void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field, unsigned int data);
-void set_buffer_fieldi(buffer target, unsigned int element, unsigned int field, int data);
-void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field, float data);
-void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field, char data);
-void set_buffer_fielduc(buffer target, unsigned int element, unsigned int field, unsigned char data);
-void set_buffer_fieldv(buffer target, unsigned int element, unsigned int field, void* data);
-
-unsigned int get_buffer_size(buffer target);
-void zero_buffer_out(buffer target);
-
-unsigned int get_size();
-void zero_out();
-
-void* get_data_buffer();
-void swap_at(unsigned int idx1, unsigned int idx2);
-void replace_at(unsigned int index, buffer data);
-void remove_at(unsigned int index);
-void resize(unsigned int num_elements);
-unsigned int get_element_size();
-void set_iterator(unsigned int iterator);
-unsigned int get_iterator();
-unsigned int get_length();
-unsigned int get_element_data_offset(unsigned int index);
-
-void* get_buffer_data_buffer(buffer target);
-void swap_buffer_at(buffer target, unsigned int idx1, unsigned int idx2);
-void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
-void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
-void replace_buffer_at(buffer target, unsigned int index, buffer element);
-void remove_buffer_at(buffer target,unsigned int index);
-void resize_buffer(buffer target, unsigned int num_elements);
-unsigned int get_buffer_element_size(buffer target);
-void set_buffer_iterator(buffer target,unsigned int iterator);
-unsigned int get_buffer_iterator(buffer target);
-unsigned int get_buffer_length(buffer target);
-unsigned int get_buffer_element_data_offset(buffer target, unsigned int index);
-
+buffer recreate_buffer(buffer target);
+buffer recreate();
+buffer copy_buffer(buffer src);
 void copy_to_buffer(buffer dest);
 void copy_from_buffer(buffer src);
 void copy_buffer_to_buffer(buffer src,buffer dest);
-buffer copy_buffer(buffer src);
+
+void swap_at(unsigned int idx1, unsigned int idx2);
+void swap_buffer_at(buffer target,unsigned int idx1, unsigned int idx2);
+void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
+
+void replace_at(unsigned int index, buffer element);
+void replace_buffer_at(buffer target, unsigned int index, buffer element);
+void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
+
+void replace_inside_buffer(buffer target, unsigned int idxsrc, unsigned int idxdest);
+void replace_inside(unsigned int idxsrc, unsigned int idxdest);
+
+void remove_buffer_at(buffer target, unsigned int index);
+void remove_at(unsigned int index);
 
 void append_at(buffer src);
 void append_to(buffer dest);
 void append_buffer_at(buffer src, buffer dest);
+
 void append_element_at(buffer src, unsigned int index);
 void append_element_to(buffer dest, unsigned int index);
 void append_buffer_element_at(buffer src, unsigned int index, buffer dest);
 
+void* dump_binary(unsigned int* size);
+void load_binary(void* bin_data, unsigned int size);
 void* dump_buffer_binary(buffer target, unsigned int* size);
 void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
 
-void* dump_binary(unsigned int* size);
-void load_binary(void* bin_data, unsigned int size);
+void zero_out();
+unsigned int get_size(buffer target);
+void* get_data_buffer();
+unsigned int get_iterator();
+void set_iterator(unsigned int iterator);
+unsigned int get_length();
+unsigned int get_element_size();
+unsigned int get_element_data_offset(unsigned int index);
+
+void zero_buffer_out(buffer target);
+unsigned int get_buffer_size(buffer target);
+void* get_buffer_data_buffer(buffer target);
+unsigned int get_buffer_iterator(buffer target);
+void set_buffer_iterator(buffer target, unsigned int iterator);
+unsigned int get_buffer_length(buffer target);
+unsigned int get_buffer_element_size(buffer target);
+unsigned int get_buffer_element_data_offset(buffer target, unsigned int index);
+
+void set_fieldui(unsigned int field,    unsigned int    data);
+void set_fieldi(unsigned int field,     int             data);
+void set_fieldf(unsigned int field,     float           data);
+void set_fieldc(unsigned int field,     char            data);
+void set_fielduc(unsigned int field,    unsigned char   data);
+void set_fieldv(unsigned int field,     void*           data);
+unsigned int    get_fieldui(unsigned int field);
+int             get_fieldi(unsigned int field);
+float           get_fieldf(unsigned int field);
+char            get_fieldc(unsigned int field);
+unsigned char   get_fielduc(unsigned int field);
+void*           get_fieldv(unsigned int field);
+
+void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field,    unsigned int    data);
+void set_buffer_fieldi(buffer target, unsigned int element, unsigned int field,     int             data);
+void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field,     float           data);
+void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field,     char            data);
+void set_buffer_fielduc(buffer target, unsigned int element, unsigned int field,    unsigned char   data);
+void set_buffer_fieldv(buffer target, unsigned int element, unsigned int field,     void*           data);
+unsigned int    get_buffer_fieldui(buffer target, unsigned int element, unsigned int field);
+int             get_buffer_fieldi(buffer target, unsigned int element, unsigned int field);
+float           get_buffer_fieldf(buffer target, unsigned int element, unsigned int field);
+char            get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
+unsigned char   get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
+void*           get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
 
 
 
@@ -1374,4 +1384,26 @@ buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int en
     memcpy(copy->data_buffer,target->data_buffer + startidx * size,(endidx - startidx) * size);
 
     return copy;
+}
+
+void replace_inside_buffer(buffer target, unsigned int idxsrc, unsigned int idxdest)
+{
+    #ifdef ERROR_CHECKING
+    error_if(target == NULL,ERROR_BAD_BUFFER);
+    error_if(idxsrc >= target->num_elements || idxdest >= target->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
+    #endif
+
+    unsigned int size = util_get_size(target);
+    memcpy(target->data_buffer + size * idxdest,target->data_buffer + size * idxsrc,size);
+}
+
+void replace_inside(unsigned int idxsrc, unsigned int idxdest)
+{
+    #ifdef ERROR_CHECKING
+    error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
+    error_if(idxsrc >= CURRENT_BUFFER->num_elements || idxdest >= CURRENT_BUFFER->num_elements,ERROR_OUT_OF_BOUNDS_INDEX);
+    #endif
+
+    unsigned int size = util_get_size(CURRENT_BUFFER);
+    memcpy(CURRENT_BUFFER->data_buffer + size * idxdest,CURRENT_BUFFER->data_buffer + size * idxsrc,size);
 }
