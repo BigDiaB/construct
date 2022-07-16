@@ -23,6 +23,7 @@ enum ERRORS
     ERROR_INVALID_NUM_TYPES,
     ERROR_NO_BOUND_BUFFER,
     ERROR_INVALID_INDEX,
+    ERROR_BAD_TYPES,
     NUM_ERROR_MESSAGES
 };
 
@@ -38,6 +39,7 @@ const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
     "ERROR_SMALL_DEST_BUFFER",
     "ERROR_INVALID_NUM_TYPES",
     "ERROR_NO_BOUND_BUFFER",
+    "ERROR_BAD_TYPES",
     "ERROR_INVALID_INDEX"
 };
 
@@ -1406,4 +1408,26 @@ void replace_inside(unsigned int idxsrc, unsigned int idxdest)
 
     unsigned int size = util_get_size(CURRENT_BUFFER);
     memcpy(CURRENT_BUFFER->data_buffer + size * idxdest,CURRENT_BUFFER->data_buffer + size * idxsrc,size);
+}
+
+buffer create_buffer_from_list(enum type* types, unsigned int num_types, unsigned int num_elements)
+{
+    #ifdef ERROR_CHECKING
+    error_if(types == NULL,ERROR_BAD_TYPES);
+    #endif
+
+    buffer target;
+    target = malloc(sizeof(struct buffer));
+    target->num_types = num_types;
+    target->iterator = -1;
+    target->types = malloc(sizeof(enum type) * num_types);
+    memcpy(target->types,types,sizeof(enum type) * num_types);
+
+    unsigned int size = util_get_size(target);
+
+    target->data_buffer = malloc(num_elements * size);
+    target->num_elements = num_elements;
+
+    return target;
+
 }

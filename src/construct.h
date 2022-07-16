@@ -27,6 +27,8 @@ enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 void scramble_buffer(buffer target);
 void scramble();
 
+void copy_partial_buffer_to_buffer(buffer src,unsigned int src_startidx, unsigned int src_endidx,buffer target);
+
 /* WIP: */
 /* <\Todo> */
 
@@ -45,6 +47,8 @@ unsigned int iterate_over(buffer target);
 
 /* Returns an initialised buffer with the currently pushed types and the specified length (and clears the stack for the types) */
 buffer init_buffer(unsigned int num_elements);
+/* Returns an initialised buffer with the given types and the specified length (doesn't clear the stack for the types) */
+buffer create_buffer_from_list(enum construct_types* types, unsigned int num_types, unsigned int num_elements);
 /* Deinitialises the specified buffer by freeing the internal variables */
 void deinit_buffer(buffer target);
 /* Binds the specified buffer at the specified index */
