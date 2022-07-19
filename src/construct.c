@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <DBG/debug.h>
-
-enum type
-{
-    UINT,INT,FLOAT,CHAR,UCHAR,VOID
-};
 
 enum ERRORS
 {
@@ -43,19 +34,19 @@ const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
     "ERROR_INVALID_INDEX"
 };
 
+#define cast_to(type) *(type*)
+
 struct buffer
 {
     unsigned int iterator,num_types,num_elements;
     void* data_buffer;
-    enum type* types;
+    enum construct_types* types;
 };
 
 typedef struct buffer* buffer;
 
-#define cast_to(type) *(type*)
-
 buffer CURRENT_BUFFER = NULL;
-enum type* CURRENT_TYPES = NULL;
+enum construct_types* CURRENT_TYPES = NULL;
 unsigned int CURRENT_NUM_TYPES = 0;
 const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
@@ -63,112 +54,8 @@ void error_if(int failure, unsigned int error, const char* function);
 unsigned int util_get_size(buffer target);
 void swap(void* src1, void* src2, unsigned int size);
 
-void flush_types();
-void pop_types(unsigned int num_types);
-void push_type(enum type type);
-void repush_buffer_types(buffer target);
-void repush_types();
-unsigned int iterate_over(buffer target);
-
-buffer init_buffer(unsigned int num_elements);
-void deinit_buffer(buffer target);
-void bind_buffer_at(buffer target, unsigned int index);
-buffer get_current_buffer();
-
-void sort_buffer_by_field(buffer target,unsigned int less,unsigned int field, enum type type);
-void sort_by_field(unsigned int more,unsigned int field, enum type type);
-
-void reverse_buffer(buffer target);
-void reverse();
-
-void resize_buffer(buffer target, unsigned int num_elements);
-void resize(unsigned int num_elements);
-
-buffer copy_partial(unsigned int startidx, unsigned int endidx);
-buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int endidx);
-buffer create_single_buffer_element(buffer target);
-buffer create_single_element();
-buffer recreate_buffer(buffer target);
-buffer recreate();
-buffer copy_buffer(buffer src);
-void copy_to_buffer(buffer dest);
-void copy_from_buffer(buffer src);
-void copy_buffer_to_buffer(buffer src,buffer dest);
-
-void swap_at(unsigned int idx1, unsigned int idx2);
-void swap_buffer_at(buffer target,unsigned int idx1, unsigned int idx2);
-void swap_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
-
-void replace_at(unsigned int index, buffer element);
-void replace_buffer_at(buffer target, unsigned int index, buffer element);
-void replace_buffer_at_buffer(buffer src, unsigned int idxsrc, buffer dest, unsigned int idxdest);
-
-void replace_inside_buffer(buffer target, unsigned int idxsrc, unsigned int idxdest);
-void replace_inside(unsigned int idxsrc, unsigned int idxdest);
-
-void remove_buffer_at(buffer target, unsigned int index);
-void remove_at(unsigned int index);
-
-void append_at(buffer src);
-void append_to(buffer dest);
-void append_buffer_at(buffer src, buffer dest);
-
-void append_element_at(buffer src, unsigned int index);
-void append_element_to(buffer dest, unsigned int index);
-void append_buffer_element_at(buffer src, unsigned int index, buffer dest);
-
-void* dump_binary(unsigned int* size);
-void load_binary(void* bin_data, unsigned int size);
-void* dump_buffer_binary(buffer target, unsigned int* size);
-void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
-
-void zero_out();
-unsigned int get_size(buffer target);
-void* get_data_buffer();
-unsigned int get_iterator();
-void set_iterator(unsigned int iterator);
-unsigned int get_length();
-unsigned int get_element_size();
-unsigned int get_element_data_offset(unsigned int index);
-
-void zero_buffer_out(buffer target);
-unsigned int get_buffer_size(buffer target);
-void* get_buffer_data_buffer(buffer target);
-unsigned int get_buffer_iterator(buffer target);
-void set_buffer_iterator(buffer target, unsigned int iterator);
-unsigned int get_buffer_length(buffer target);
-unsigned int get_buffer_element_size(buffer target);
-unsigned int get_buffer_element_data_offset(buffer target, unsigned int index);
-
-void set_fieldui(unsigned int field,    unsigned int    data);
-void set_fieldi(unsigned int field,     int             data);
-void set_fieldf(unsigned int field,     float           data);
-void set_fieldc(unsigned int field,     char            data);
-void set_fielduc(unsigned int field,    unsigned char   data);
-void set_fieldv(unsigned int field,     void*           data);
-unsigned int    get_fieldui(unsigned int field);
-int             get_fieldi(unsigned int field);
-float           get_fieldf(unsigned int field);
-char            get_fieldc(unsigned int field);
-unsigned char   get_fielduc(unsigned int field);
-void*           get_fieldv(unsigned int field);
-
-void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field,    unsigned int    data);
-void set_buffer_fieldi(buffer target, unsigned int element, unsigned int field,     int             data);
-void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field,     float           data);
-void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field,     char            data);
-void set_buffer_fielduc(buffer target, unsigned int element, unsigned int field,    unsigned char   data);
-void set_buffer_fieldv(buffer target, unsigned int element, unsigned int field,     void*           data);
-unsigned int    get_buffer_fieldui(buffer target, unsigned int element, unsigned int field);
-int             get_buffer_fieldi(buffer target, unsigned int element, unsigned int field);
-float           get_buffer_fieldf(buffer target, unsigned int element, unsigned int field);
-char            get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
-unsigned char   get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
-void*           get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
-
-
-
-
+#define CONSTRUCT_IMPLEMENTATION
+#include "construct.h"
 
 void error_if(int failure, unsigned int error, const char* function)
 {
@@ -191,20 +78,20 @@ unsigned int util_get_size(buffer target)
 
 void swap(void* src1, void* src2, unsigned int size)
 {
-    uint8_t temp[size];
+    unsigned char temp[size];
     memcpy(temp,src2,size);
     memcpy(src2, src1,size);
     memcpy(src1, temp,size);
 }
 
-void push_type(enum type t)
+void push_type(enum construct_types t)
 {
     if (CURRENT_TYPES == NULL)
     {
         CURRENT_TYPES = malloc(0);
         CURRENT_NUM_TYPES = 0;
     }
-    CURRENT_TYPES = realloc(CURRENT_TYPES,(CURRENT_NUM_TYPES + 1) * sizeof(enum type));
+    CURRENT_TYPES = realloc(CURRENT_TYPES,(CURRENT_NUM_TYPES + 1) * sizeof(enum construct_types));
     CURRENT_TYPES[CURRENT_NUM_TYPES] = t;
     CURRENT_NUM_TYPES++;
 }
@@ -851,8 +738,8 @@ buffer create_single_buffer_element(buffer target)
     element = malloc(sizeof(struct buffer));
     element->num_types = target->num_types;
     element->iterator = -1;
-    element->types = malloc(sizeof(enum type) * target->num_types);
-    memcpy(element->types,target->types,sizeof(enum type) * target->num_types);
+    element->types = malloc(sizeof(enum construct_types) * target->num_types);
+    memcpy(element->types,target->types,sizeof(enum construct_types) * target->num_types);
     unsigned int size = util_get_size(target);
     element->data_buffer = malloc(size);
     element->num_elements = 1;
@@ -869,8 +756,8 @@ buffer create_single_element()
     element = malloc(sizeof(struct buffer));
     element->num_types = CURRENT_BUFFER->num_types;
     element->iterator = -1;
-    element->types = malloc(sizeof(enum type) * CURRENT_BUFFER->num_types);
-    memcpy(element->types,CURRENT_BUFFER->types,sizeof(enum type) * CURRENT_BUFFER->num_types);
+    element->types = malloc(sizeof(enum construct_types) * CURRENT_BUFFER->num_types);
+    memcpy(element->types,CURRENT_BUFFER->types,sizeof(enum construct_types) * CURRENT_BUFFER->num_types);
     unsigned int size = util_get_size(CURRENT_BUFFER);
     element->data_buffer = malloc(size);
     element->num_elements = 1;
@@ -918,7 +805,7 @@ buffer copy_buffer(buffer src)
 
     unsigned int i, size = util_get_size(src);
     copy->num_types = src->num_types;
-    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    copy->types = malloc(sizeof(enum construct_types) * copy->num_types);
     for (i = 0; i < src->num_types; i++)
         copy->types[i] = src->types[i];
 
@@ -1014,7 +901,7 @@ void pop_types(unsigned int num_types)
     error_if(num_types < num_types,ERROR_INVALID_NUM_TYPES);
     #endif
     CURRENT_NUM_TYPES -= num_types;
-    CURRENT_TYPES = realloc(CURRENT_TYPES,CURRENT_NUM_TYPES * sizeof(enum type));
+    CURRENT_TYPES = realloc(CURRENT_TYPES,CURRENT_NUM_TYPES * sizeof(enum construct_types));
 }
 
 void* dump_buffer_binary(buffer target, unsigned int* size)
@@ -1139,8 +1026,8 @@ buffer recreate()
     recreation = malloc(sizeof(struct buffer));
     recreation->num_types = CURRENT_BUFFER->num_types;
     recreation->iterator = -1;
-    recreation->types = malloc(sizeof(enum type) * CURRENT_BUFFER->num_types);
-    memcpy(recreation->types,CURRENT_BUFFER->types,sizeof(enum type) * CURRENT_BUFFER->num_types);
+    recreation->types = malloc(sizeof(enum construct_types) * CURRENT_BUFFER->num_types);
+    memcpy(recreation->types,CURRENT_BUFFER->types,sizeof(enum construct_types) * CURRENT_BUFFER->num_types);
     recreation->num_elements = 0;
     recreation->data_buffer = malloc(0);
 
@@ -1158,15 +1045,15 @@ buffer recreate_buffer(buffer target)
     recreation = malloc(sizeof(struct buffer));
     recreation->num_types = target->num_types;
     recreation->iterator = -1;
-    recreation->types = malloc(sizeof(enum type) * target->num_types);
-    memcpy(recreation->types,target->types,sizeof(enum type) * target->num_types);
+    recreation->types = malloc(sizeof(enum construct_types) * target->num_types);
+    memcpy(recreation->types,target->types,sizeof(enum construct_types) * target->num_types);
     recreation->num_elements = 0;
     recreation->data_buffer = malloc(0);
 
     return recreation;
 }
 
-void sort_by_field(unsigned int more,unsigned int field, enum type type)
+void sort_by_field(unsigned int more,unsigned int field, enum construct_types type)
 {
     #ifdef ERROR_CHECKING
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
@@ -1252,7 +1139,7 @@ void sort_by_field(unsigned int more,unsigned int field, enum type type)
     }
 }
 
-void sort_buffer_by_field(buffer target,unsigned int more,unsigned int field,enum type type)
+void sort_buffer_by_field(buffer target,unsigned int more,unsigned int field,enum construct_types type)
 {
     #ifdef ERROR_CHECKING
     error_if(target == NULL,ERROR_BAD_BUFFER);
@@ -1351,7 +1238,7 @@ buffer copy_partial(unsigned int startidx, unsigned int endidx)
 
     unsigned int i, size = util_get_size(CURRENT_BUFFER);
     copy->num_types = CURRENT_BUFFER->num_types;
-    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    copy->types = malloc(sizeof(enum construct_types) * copy->num_types);
     for (i = 0; i < CURRENT_BUFFER->num_types; i++)
         copy->types[i] = CURRENT_BUFFER->types[i];
 
@@ -1376,7 +1263,7 @@ buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int en
 
     unsigned int i, size = util_get_size(target);
     copy->num_types = target->num_types;
-    copy->types = malloc(sizeof(enum type) * copy->num_types);
+    copy->types = malloc(sizeof(enum construct_types) * copy->num_types);
     for (i = 0; i < target->num_types; i++)
         copy->types[i] = target->types[i];
 
@@ -1410,7 +1297,7 @@ void replace_inside(unsigned int idxsrc, unsigned int idxdest)
     memcpy(CURRENT_BUFFER->data_buffer + size * idxdest,CURRENT_BUFFER->data_buffer + size * idxsrc,size);
 }
 
-buffer create_buffer_from_list(enum type* types, unsigned int num_types, unsigned int num_elements)
+buffer init_bufferve(unsigned int num_elements, unsigned int num_types, enum construct_types* types)
 {
     #ifdef ERROR_CHECKING
     error_if(types == NULL,ERROR_BAD_TYPES);
@@ -1420,8 +1307,8 @@ buffer create_buffer_from_list(enum type* types, unsigned int num_types, unsigne
     target = malloc(sizeof(struct buffer));
     target->num_types = num_types;
     target->iterator = -1;
-    target->types = malloc(sizeof(enum type) * num_types);
-    memcpy(target->types,types,sizeof(enum type) * num_types);
+    target->types = malloc(sizeof(enum construct_types) * num_types);
+    memcpy(target->types,types,sizeof(enum construct_types) * num_types);
 
     unsigned int size = util_get_size(target);
 
@@ -1431,3 +1318,36 @@ buffer create_buffer_from_list(enum type* types, unsigned int num_types, unsigne
     return target;
 
 }
+
+buffer init_bufferva(unsigned int num_elements, unsigned int num_types, ...)
+{
+    va_list types;
+    va_start(types,num_types);
+
+    enum construct_types* buffer_types = malloc(sizeof(enum construct_types) * num_types);
+    unsigned int i;
+    for (i = 0; i < num_types; i++)
+        buffer_types[i] = va_arg(types,enum construct_types);
+    va_end(types);
+
+    buffer target;
+    target = malloc(sizeof(struct buffer));
+    target->num_types = num_types;
+
+    target->iterator = -1;
+
+    #ifdef ERROR_CHECKING
+    error_if(num_types == 0,ERROR_NO_PUSHED_TYPES);
+    #endif
+
+    target->types = buffer_types;
+
+    
+    unsigned int size = util_get_size(target);
+
+    target->data_buffer = malloc(num_elements * size);
+    target->num_elements = num_elements;
+
+    return target;   
+}
+

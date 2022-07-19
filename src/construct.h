@@ -14,11 +14,16 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>	
 #include <string.h>
 
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
-(Because I don't trust myself having access to the struct in my applications) */
+(Because I don't trust myself having access to the struct in my applications) 
+ Don't define "CONSTRUCT_IMPLEMENTATION" in your projects, or it won't compile.
+ This is only intended for the source of the implementation, hence the opaque data-type */
+#ifndef CONSTRUCT_IMPLEMENTATION
 typedef void* buffer;
+#endif
 
 /* Enum with the supported types ("VOID" actually means void pointer and can also be used for nested buffers) */
 enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
@@ -47,8 +52,10 @@ unsigned int iterate_over(buffer target);
 
 /* Returns an initialised buffer with the currently pushed types and the specified length (and clears the stack for the types) */
 buffer init_buffer(unsigned int num_elements);
+/* Returns an initialised buffer with the variadicly given types and the specified length (doesn't clear the stack for the types) */
+buffer init_bufferva(unsigned int num_elements, unsigned int num_types, ...);
 /* Returns an initialised buffer with the given types and the specified length (doesn't clear the stack for the types) */
-buffer create_buffer_from_list(enum construct_types* types, unsigned int num_types, unsigned int num_elements);
+buffer init_bufferve(unsigned int num_elements, unsigned int num_types, enum construct_types* types);
 /* Deinitialises the specified buffer by freeing the internal variables */
 void deinit_buffer(buffer target);
 /* Binds the specified buffer at the specified index */
