@@ -20,7 +20,7 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
 (Because I don't trust myself having access to the struct in my applications) 
  Don't define "CONSTRUCT_IMPLEMENTATION" in your projects, or it won't compile.
- This is only intended for the source of the implementation, hence the opaque data-type */
+ This is only intended for the source of the implementation, hence the otherwise opaque data-type */
 #ifndef CONSTRUCT_IMPLEMENTATION
 typedef void* buffer;
 #endif
@@ -31,8 +31,6 @@ enum construct_types {UINT,INT,FLOAT,CHAR,UCHAR,VOID};
 /* <Todo> */
 void scramble_buffer(buffer target);
 void scramble();
-
-void copy_partial_buffer_to_buffer(buffer src,unsigned int src_startidx, unsigned int src_endidx,buffer target);
 
 /* WIP: */
 /* <\Todo> */
@@ -194,6 +192,13 @@ float 			get_fieldf(unsigned int field);
 char 			get_fieldc(unsigned int field);
 unsigned char 	get_fielduc(unsigned int field);
 void* 			get_fieldv(unsigned int field);
+/* Returns a pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+unsigned int* 	get_pointerui(unsigned int field);
+int* 			get_pointeri(unsigned int field);
+float* 			get_pointerf(unsigned int field);
+char* 			get_pointerc(unsigned int field);
+unsigned char* 	get_pointeruc(unsigned int field);
+void** 			get_pointerv(unsigned int field);
 
 /* Assigns the given field of the specified buffer to the specified data */
 void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field,	unsigned int 	data);
@@ -209,6 +214,13 @@ float 			get_buffer_fieldf(buffer target, unsigned int element, unsigned int fie
 char 			get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
 unsigned char 	get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
 void* 			get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
+/* Returns a pointer to the given field of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+unsigned int* 	get_buffer_pointerui(buffer target, unsigned int element, unsigned int field);
+int* 			get_buffer_pointeri(buffer target, unsigned int element, unsigned int field);
+float* 			get_buffer_pointerf(buffer target, unsigned int element, unsigned int field);
+char* 			get_buffer_pointerc(buffer target, unsigned int element, unsigned int field);
+unsigned char* 	get_buffer_pointeruc(buffer target, unsigned int element, unsigned int field);
+void** 			get_buffer_pointerv(buffer target, unsigned int element, unsigned int field);
 
 #ifdef __cplusplus
 }

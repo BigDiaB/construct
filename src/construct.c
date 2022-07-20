@@ -48,9 +48,9 @@ typedef struct buffer* buffer;
 buffer CURRENT_BUFFER = NULL;
 enum construct_types* CURRENT_TYPES = NULL;
 unsigned int CURRENT_NUM_TYPES = 0;
-const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
+static const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(float),sizeof(char),sizeof(unsigned char),sizeof(void*)};
 
-void error_if(int failure, unsigned int error, const char* function);
+void error_if(int failure, enum ERRORS error, const char* function);
 unsigned int util_get_size(buffer target);
 void swap(void* src1, void* src2, unsigned int size);
 
@@ -72,6 +72,14 @@ unsigned int util_get_size(buffer target)
 {
     unsigned int i, size = 0;
     for (i = 0; i < target->num_types; i++)
+        size += sizes[target->types[i]];
+    return size;
+}
+
+unsigned int util_get_size_until(buffer target, unsigned int num_fields)
+{
+    unsigned int i, size = 0;
+    for (i = 0; i < num_fields; i++)
         size += sizes[target->types[i]];
     return size;
 }
@@ -1351,3 +1359,56 @@ buffer init_bufferva(unsigned int num_elements, unsigned int num_types, ...)
     return target;   
 }
 
+unsigned int* get_buffer_pointerui(buffer target, unsigned int element, unsigned int field)
+{
+    return (unsigned int*)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+unsigned int* get_pointerui(unsigned int field)
+{
+    return (unsigned int*)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+int* get_buffer_pointeri(buffer target, unsigned int element, unsigned int field)
+{
+    return (int*)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+int* get_pointeri(unsigned int field)
+{
+    return (int*)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+float* get_buffer_pointerf(buffer target, unsigned int element, unsigned int field)
+{
+    return (float*)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+float* get_pointerf(unsigned int field)
+{
+    return (float*)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+char* get_buffer_pointerc(buffer target, unsigned int element, unsigned int field)
+{
+    return (char*)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+char* get_pointerc(unsigned int field)
+{
+    return (char*)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+unsigned char* get_buffer_pointeruc(buffer target, unsigned int element, unsigned int field)
+{
+    return (unsigned char*)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+unsigned char* get_pointeruc(unsigned int field)
+{
+    return (unsigned char*)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+void** get_buffer_pointerv(buffer target, unsigned int element, unsigned int field)
+{
+    return (void**)(target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field));
+}
+void** get_pointerv(unsigned int field)
+{
+    return (void**)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
