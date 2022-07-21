@@ -1,4 +1,3 @@
-#include <DBG/debug.h>
 
 enum ERRORS
 {
@@ -35,6 +34,7 @@ const char* ERROR_MESSAGES[NUM_ERROR_MESSAGES] = {
 };
 
 #define cast_to(type) *(type*)
+#define NULL ((void*)0)
 
 struct buffer
 {
@@ -56,6 +56,23 @@ void swap(void* src1, void* src2, unsigned int size);
 
 #define CONSTRUCT_IMPLEMENTATION
 #include "construct.h"
+
+void* memset(void* dest, int val, size_t len)
+{
+    unsigned char *ptr = dest;
+    while (len-- > 0)
+        *ptr++ = val;
+    return dest;
+}
+
+void* memcpy(void* dest, const void* src, size_t len)
+{
+    char *d = dest;
+    const char *s = src;
+    while (len--)
+        *d++ = *s++;
+    return dest;
+}
 
 void error_if(int failure, unsigned int error, const char* function)
 {

@@ -14,8 +14,7 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>	
-#include <string.h>
+#include <stdarg.h>
 
 /* Typedef to a void-pointer in order to make the buffer data-type opaque
 (Because I don't trust myself having access to the struct in my applications) 
