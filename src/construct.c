@@ -265,8 +265,9 @@ void resize(unsigned int num_elements)
     error_if(CURRENT_BUFFER == NULL,ERROR_NO_BOUND_BUFFER);
     #endif
     unsigned int size = util_get_size(CURRENT_BUFFER);
-    CURRENT_BUFFER->num_elements = num_elements;
     CURRENT_BUFFER->data_buffer = realloc(CURRENT_BUFFER->data_buffer,num_elements * size);
+    memset(CURRENT_BUFFER->data_buffer + size * CURRENT_BUFFER->num_elements,0,(num_elements - CURRENT_BUFFER->num_elements) * size);
+    CURRENT_BUFFER->num_elements = num_elements;
 }
 
 unsigned int get_element_size()
@@ -544,8 +545,9 @@ void resize_buffer(buffer target, unsigned int num_elements)
     error_if(target == NULL,ERROR_BAD_BUFFER);
     #endif
     unsigned int size = util_get_size(target);
-    target->num_elements = num_elements;
     target->data_buffer = realloc(target->data_buffer,num_elements * size);
+    memset(target->data_buffer + size * target->num_elements,0,(num_elements - target->num_elements) * size);
+    target->num_elements = num_elements;
 }
 
 unsigned int get_buffer_element_size(buffer target)
@@ -1374,6 +1376,15 @@ buffer init_bufferva(unsigned int num_elements, unsigned int num_types, ...)
     target->num_elements = num_elements;
 
     return target;   
+}
+
+void* get_pointer(unsigned int field)
+{
+    return CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field);
+}
+void* get_buffer_pointer(buffer target, unsigned int element, unsigned int field)
+{
+    return target->data_buffer + get_buffer_element_data_offset(target,element) + util_get_size_until(target,field);
 }
 
 unsigned int* get_buffer_pointerui(buffer target, unsigned int element, unsigned int field)

@@ -32,6 +32,9 @@ void scramble_buffer(buffer target);
 void scramble();
 
 /* WIP: */
+/* Returns a generic void pointer to the given field of the currently bound buffer */
+/* Returns a generic void pointer to the given field of the given element of the specified buffer */
+
 /* <\Todo> */
 
 /* Flushes the type-stack */
@@ -192,12 +195,13 @@ char 			get_fieldc(unsigned int field);
 unsigned char 	get_fielduc(unsigned int field);
 void* 			get_fieldv(unsigned int field);
 /* Returns a pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+void*           get_pointer(unsigned int field);
 unsigned int* 	get_pointerui(unsigned int field);
 int* 			get_pointeri(unsigned int field);
 float* 			get_pointerf(unsigned int field);
 char* 			get_pointerc(unsigned int field);
 unsigned char* 	get_pointeruc(unsigned int field);
-void** 			get_pointerv(unsigned int field);
+void**          get_pointerv(unsigned int field);
 
 /* Assigns the given field of the specified buffer to the specified data */
 void set_buffer_fieldui(buffer target, unsigned int element, unsigned int field,	unsigned int 	data);
@@ -213,13 +217,14 @@ float 			get_buffer_fieldf(buffer target, unsigned int element, unsigned int fie
 char 			get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
 unsigned char 	get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
 void* 			get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
-/* Returns a pointer to the given field of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+/* Returns a pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+void*           get_buffer_pointer(buffer target, unsigned int element, unsigned int field);
 unsigned int* 	get_buffer_pointerui(buffer target, unsigned int element, unsigned int field);
 int* 			get_buffer_pointeri(buffer target, unsigned int element, unsigned int field);
 float* 			get_buffer_pointerf(buffer target, unsigned int element, unsigned int field);
 char* 			get_buffer_pointerc(buffer target, unsigned int element, unsigned int field);
 unsigned char* 	get_buffer_pointeruc(buffer target, unsigned int element, unsigned int field);
-void** 			get_buffer_pointerv(buffer target, unsigned int element, unsigned int field);
+void**          get_buffer_pointerv(buffer target, unsigned int element, unsigned int field);
 
 #ifdef __cplusplus
 }
