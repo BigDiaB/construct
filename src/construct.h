@@ -8,7 +8,7 @@ extern "C" {
 /* Construct
 Construct is a library for runtime data types, bound together like a struct
 
-The so called buffers are opaque to the end-user in addition to a lot of error-checks to make sure that this library is as memory safe as possible!
+The so called buffers are opaque to the end user in addition to a lot of error checks to make sure that this library is as memory safe as possible!
 (The error checks must be enabled first by defining "ERROR_CHECKING" during compilation of the library)
 */
 
@@ -16,10 +16,10 @@ The so called buffers are opaque to the end-user in addition to a lot of error-c
 #include <stdlib.h>
 #include <stdarg.h>
 
-/* Typedef to a void-pointer in order to make the buffer data-type opaque
+/* Typedef to a void pointer in order to make the buffer data type opaque
 (Because I don't trust myself having access to the struct in my applications) 
  Don't define "CONSTRUCT_IMPLEMENTATION" in your projects, or it won't compile.
- This is only intended for the source of the implementation, hence the otherwise opaque data-type */
+ This is only intended for the source of the implementation, hence the otherwise opaque data type */
 #ifndef CONSTRUCT_IMPLEMENTATION
 typedef void* buffer;
 #endif
@@ -32,20 +32,18 @@ void scramble_buffer(buffer target);
 void scramble();
 
 /* WIP: */
-/* Returns a generic void pointer to the given field of the currently bound buffer */
-/* Returns a generic void pointer to the given field of the given element of the specified buffer */
 
 /* <\Todo> */
 
-/* Flushes the type-stack */
+/* Flushes the type stack */
 void flush_types();
-/* Pops the given number of types from the type-stack */
+/* Pops the given number of types from the type stack */
 void pop_types(unsigned int num_types);
-/* Pushes a type from the type-enum onto the type-stack */
+/* Pushes a type from the type enum onto the type stack */
 void push_type(enum construct_types type);
-/* Pushes the types of the specified buffer for use in another buffer onto the type-stack */
+/* Pushes the types of the specified buffer for use in another buffer onto the type stack */
 void repush_buffer_types(buffer target);
-/* Pushes the types of the currently bound buffer for use in another buffer onto the type-stack */
+/* Pushes the types of the currently bound buffer for use in another buffer onto the type stack */
 void repush_types();
 /* Iterates over all items of a buffer starting at index of the iterator */
 unsigned int iterate_over(buffer target);
@@ -73,9 +71,9 @@ void reverse_buffer(buffer target);
 /* Reverses the sequence of elements in the currently bound buffer */
 void reverse();
 
-/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+/* Resizes the specified buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements will be memset() to 0 */
 void resize_buffer(buffer target, unsigned int num_elements);
-/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements won't be initialised */
+/* Resizes the currently bound buffer to have the given number of elements. When shrinking the buffer, the last elements will be removed, when enlarging, the new elements will be memset() to 0 */
 void resize(unsigned int num_elements);
 
 /* Returns a buffer, initialised with a partition of the currently bound buffer within the given indices */
@@ -86,9 +84,9 @@ buffer copy_partial_buffer(buffer target, unsigned int startidx, unsigned int en
 buffer create_single_buffer_element(buffer target);
 /* Returns a buffer with a single element laid out according to the currently bound buffer */
 buffer create_single_element();
-/* Returns a buffer with the same type-layout as the specified buffer */
+/* Returns a buffer with the same type layout as the specified buffer */
 buffer recreate_buffer(buffer target);
-/* Returns a buffer with the same type-layout as the currently bound buffer */
+/* Returns a buffer with the same type layout as the currently bound buffer */
 buffer recreate();
 /* Returns a preinitialised copy of the specified buffer */
 buffer copy_buffer(buffer src);
@@ -146,9 +144,9 @@ void* dump_buffer_binary(buffer target, unsigned int* size);
 /* Copies bin_data into the data buffer of the specified buffer and resizes it if the given size doesn't match the current size of the specified buffer */
 void load_buffer_binary(buffer target, void* bin_data, unsigned int size);
 
-/* sets every single byte in the data-buffer of the currently bound buffer to zero */
+/* sets every single byte in the data buffer of the currently bound buffer to zero */
 void zero_out();
-/* Returns the size of the currently bound buffer's data-buffer in bytes */
+/* Returns the size of the currently bound buffer's data buffer in bytes */
 unsigned int get_size(buffer target);
 /* Returns the raw data buffer of the currently bound buffer */
 void* get_data_buffer();
@@ -163,9 +161,9 @@ unsigned int get_element_size();
 /* Returns the offset in bytes of the element at the given index in the currently bound buffer */
 unsigned int get_element_data_offset(unsigned int index);
 
-/* sets every single byte in the data-buffer of the specified buffer to zero */
+/* sets every single byte in the data buffer of the specified buffer to zero */
 void zero_buffer_out(buffer target);
-/* Returns the size of the specified buffer's data-buffer in bytes */
+/* Returns the size of the specified buffer's data buffer in bytes */
 unsigned int get_buffer_size(buffer target);
 /* Returns the raw data buffer of the specified buffer */
 void* get_buffer_data_buffer(buffer target);
@@ -194,8 +192,9 @@ float 			get_fieldf(unsigned int field);
 char 			get_fieldc(unsigned int field);
 unsigned char 	get_fielduc(unsigned int field);
 void* 			get_fieldv(unsigned int field);
-/* Returns a pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+/* Returns a generic void pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 void*           get_pointer(unsigned int field);
+/* Returns a pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 unsigned int* 	get_pointerui(unsigned int field);
 int* 			get_pointeri(unsigned int field);
 float* 			get_pointerf(unsigned int field);
@@ -217,8 +216,9 @@ float 			get_buffer_fieldf(buffer target, unsigned int element, unsigned int fie
 char 			get_buffer_fieldc(buffer target, unsigned int element, unsigned int field);
 unsigned char 	get_buffer_fielduc(buffer target, unsigned int element, unsigned int field);
 void* 			get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
-/* Returns a pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+/* Returns a generic void pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 void*           get_buffer_pointer(buffer target, unsigned int element, unsigned int field);
+/* Returns a pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 unsigned int* 	get_buffer_pointerui(buffer target, unsigned int element, unsigned int field);
 int* 			get_buffer_pointeri(buffer target, unsigned int element, unsigned int field);
 float* 			get_buffer_pointerf(buffer target, unsigned int element, unsigned int field);
