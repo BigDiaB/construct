@@ -57,22 +57,28 @@ void swap(void* src1, void* src2, unsigned int size);
 #define CONSTRUCT_IMPLEMENTATION
 #include "construct.h"
 
-void* memset(void* dest, int val, size_t len)
-{
-    unsigned char *ptr = dest;
-    while (len-- > 0)
-        *ptr++ = val;
-    return dest;
-}
+#ifdef EBUG
+    #include <DBG/debug.h>
+#else
+    void* memset(void* dest, int val, size_t len)
+    {
+        unsigned char *ptr = dest;
+        while (len-- > 0)
+            *ptr++ = val;
+        return dest;
+    }
 
-void* memcpy(void* dest, const void* src, size_t len)
-{
-    char *d = dest;
-    const char *s = src;
-    while (len--)
-        *d++ = *s++;
-    return dest;
-}
+    void* memcpy(void* dest, const void* src, size_t len)
+    {
+        char *d = dest;
+        const char *s = src;
+        while (len--)
+            *d++ = *s++;
+        return dest;
+    }
+#endif
+
+
 
 void error_if(int failure, unsigned int error, const char* function)
 {
@@ -703,7 +709,7 @@ void set_buffer_fieldf(buffer target, unsigned int element, unsigned int field, 
     error_if(FLOAT != target->types[field],ERROR_INVALID_TYPE);
     #endif
 
-    set_buffer_field(target,element, field,&data);
+    set_buffer_field(target,element,field,&data);
 }
 
 void set_buffer_fieldc(buffer target, unsigned int element, unsigned int field, char data)

@@ -1,7 +1,7 @@
 out: construct
 gxx: clang
 gxxflags:
-cxxflags: -W -Wall -Wextra -O0
+cxxflags: -W -Wall -Wextra -O0 -std=c89
 source: ../src/construct.c
 includes: -I../libs/include
 lib_path: -L../libs/lib
@@ -9,4 +9,4 @@ libraries: -lDBG
 debugger: none
 dependencies: DBG
 d_types: static
-defines: -DERROR_CHECKING -DEBUG
+defines: -DEBUG -DERROR_CHECKING
