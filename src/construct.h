@@ -178,6 +178,18 @@ unsigned int get_buffer_element_size(buffer target);
 /* Returns the offset in bytes of the element at the given index in the specified buffer */
 unsigned int get_buffer_element_data_offset(buffer target, unsigned int index);
 
+/* Multiplies and stores the result of the used operation with the given field in the currently bound buffer and the factor */
+void mul_field(unsigned int field, float factor);
+void div_field(unsigned int field, float factor);
+void add_field(unsigned int field, float factor);
+void sub_field(unsigned int field, float factor);
+
+/* Multiplies and stores the result of the used operation with the given field in the specified buffer and the factor */
+void mul_buffer_field(buffer target, unsigned int element, unsigned int field, float factor);
+void div_buffer_field(buffer target, unsigned int element, unsigned int field, float factor);
+void add_buffer_field(buffer target, unsigned int element, unsigned int field, float factor);
+void sub_buffer_field(buffer target, unsigned int element, unsigned int field, float factor);
+
 /* Assigns the given field of the currently bound buffer to the specified data */
 void set_fieldui(unsigned int field, 	unsigned int 	data);
 void set_fieldi(unsigned int field,  	int 			data);
@@ -194,6 +206,8 @@ unsigned char 	get_fielduc(unsigned int field);
 void* 			get_fieldv(unsigned int field);
 /* Returns a generic void pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 void*           get_pointer(unsigned int field);
+/* Returns a pointer to the first field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+void*           get_element_pointer();
 /* Returns a pointer to the given field of the currently bound buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 unsigned int* 	get_pointerui(unsigned int field);
 int* 			get_pointeri(unsigned int field);
@@ -218,6 +232,8 @@ unsigned char 	get_buffer_fielduc(buffer target, unsigned int element, unsigned 
 void* 			get_buffer_fieldv(buffer target, unsigned int element, unsigned int field);
 /* Returns a generic void pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 void*           get_buffer_pointer(buffer target, unsigned int element, unsigned int field);
+/* Returns a pointer to the first field of the given element in the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
+void*           get_buffer_element_pointer(buffer target, unsigned int element);
 /* Returns a pointer to the given field of the given element of the specified buffer (If a buffer gets resized, it invalidates all previously obtained pointers to it!) */
 unsigned int* 	get_buffer_pointerui(buffer target, unsigned int element, unsigned int field);
 int* 			get_buffer_pointeri(buffer target, unsigned int element, unsigned int field);

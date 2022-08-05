@@ -52,6 +52,7 @@ static const unsigned int sizes[6] = {sizeof(unsigned int),sizeof(int),sizeof(fl
 
 void error_if(int failure, enum ERRORS error, const char* function);
 unsigned int util_get_size(buffer target);
+unsigned int util_get_size_until(buffer target, unsigned int num_fields);
 void swap(void* src1, void* src2, unsigned int size);
 
 #define CONSTRUCT_IMPLEMENTATION
@@ -77,8 +78,6 @@ void swap(void* src1, void* src2, unsigned int size);
         return dest;
     }
 #endif
-
-
 
 void error_if(int failure, unsigned int error, const char* function)
 {
@@ -1445,4 +1444,247 @@ void** get_buffer_pointerv(buffer target, unsigned int element, unsigned int fie
 void** get_pointerv(unsigned int field)
 {
     return (void**)(CURRENT_BUFFER->data_buffer + get_buffer_element_data_offset(CURRENT_BUFFER,CURRENT_BUFFER->iterator) + util_get_size_until(CURRENT_BUFFER,field));
+}
+
+void* get_element_pointer()
+{
+    return CURRENT_BUFFER->data_buffer + get_element_data_offset(CURRENT_BUFFER->iterator);
+}
+
+void* get_buffer_element_pointer(buffer target, unsigned int element)
+{
+    return target->data_buffer + get_buffer_element_data_offset(target,element);
+}
+
+
+void mul_field(unsigned int field, float factor)
+{
+    switch(CURRENT_BUFFER->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) * factor);
+        break;
+        case INT:
+        set_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) * factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) * factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) * factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) * factor);
+        break;
+        case VOID:
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void div_field(unsigned int field, float factor)
+{
+    switch(CURRENT_BUFFER->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) / factor);
+        break;
+        case INT:
+        set_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) / factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) / factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) / factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) / factor);
+        break;
+        case VOID:
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void add_field(unsigned int field, float factor)
+{
+    switch(CURRENT_BUFFER->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + factor);
+        break;
+        case INT:
+        set_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + factor);
+        break;
+        case VOID:
+        set_buffer_fieldv(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldv(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) + (int)factor);
+        break;
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void sub_field(unsigned int field, float factor)
+{
+    switch(CURRENT_BUFFER->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldui(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - factor);
+        break;
+        case INT:
+        set_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldi(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fielduc(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldf(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - factor);
+        break;
+        case VOID:
+        set_buffer_fieldv(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field,get_buffer_fieldv(CURRENT_BUFFER,CURRENT_BUFFER->iterator,field) - (int)factor);
+        break;
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void mul_buffer_field(buffer target, unsigned int element, unsigned int field, float factor)
+{
+    switch(target->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(target,element,field,get_buffer_fieldui(target,element,field) * factor);
+        break;
+        case INT:
+        set_buffer_fieldi(target,element,field,get_buffer_fieldi(target,element,field) * factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(target,element,field,get_buffer_fieldc(target,element,field) * factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(target,element,field,get_buffer_fielduc(target,element,field) * factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(target,element,field,get_buffer_fieldf(target,element,field) * factor);
+        break;
+        case VOID:
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void div_buffer_field(buffer target, unsigned int element, unsigned int field, float factor)
+{
+    switch(target->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(target,element,field,get_buffer_fieldui(target,element,field) / factor);
+        break;
+        case INT:
+        set_buffer_fieldi(target,element,field,get_buffer_fieldi(target,element,field) / factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(target,element,field,get_buffer_fieldc(target,element,field) / factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(target,element,field,get_buffer_fielduc(target,element,field) / factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(target,element,field,get_buffer_fieldf(target,element,field) / factor);
+        break;
+        case VOID:
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void add_buffer_field(buffer target, unsigned int element, unsigned int field, float factor)
+{
+    switch(target->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(target,element,field,get_buffer_fieldui(target,element,field) + factor);
+        break;
+        case INT:
+        set_buffer_fieldi(target,element,field,get_buffer_fieldi(target,element,field) + factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(target,element,field,get_buffer_fieldc(target,element,field) + factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(target,element,field,get_buffer_fielduc(target,element,field) + factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(target,element,field,get_buffer_fieldf(target,element,field) + factor);
+        break;
+        case VOID:
+        set_buffer_fieldv(target,element,field,get_buffer_fieldv(target,element,field) + (int)factor);
+        break;
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
+}
+
+void sub_buffer_field(buffer target, unsigned int element, unsigned int field, float factor)
+{
+    switch(target->types[field])
+    {
+        case UINT:
+        set_buffer_fieldui(target,element,field,get_buffer_fieldui(target,element,field) - factor);
+        break;
+        case INT:
+        set_buffer_fieldi(target,element,field,get_buffer_fieldi(target,element,field) - factor);
+        break;
+        case CHAR:
+        set_buffer_fieldc(target,element,field,get_buffer_fieldc(target,element,field) - factor);
+        break;
+        case UCHAR:
+        set_buffer_fielduc(target,element,field,get_buffer_fielduc(target,element,field) - factor);
+        break;
+        case FLOAT:
+        set_buffer_fieldf(target,element,field,get_buffer_fieldf(target,element,field) - factor);
+        break;
+        case VOID:
+        set_buffer_fieldv(target,element,field,get_buffer_fieldv(target,element,field) - (int)factor);
+        break;
+        default:
+        #ifdef ERROR_CHECKING
+        error_if(0,ERROR_INVALID_TYPE);
+        #endif
+        break;
+    }
 }
